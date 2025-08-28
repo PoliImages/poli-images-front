@@ -6,6 +6,35 @@ class AuthService {
   // CORREÇÃO 1: Adicionada a porta :8080 no final da URL
   final String _baseUrl = 'http://10.2.2.115:8080';
 
+  
+  // --- MÉTODO DE LOGIN (NOVO) ---
+  Future<Map<String, dynamic>> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    // A URL agora aponta para a nova rota de login
+    final url = Uri.parse('$_baseUrl/api/auth/login');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+      final responseBody = jsonDecode(response.body);
+      return {
+        'statusCode': response.statusCode,
+        'message': responseBody['message'] ?? 'Erro desconhecido.',
+      };
+    } catch (e) {
+      print('Erro de conexão na AuthService (login): $e');
+      return {
+        'statusCode': 503,
+        'message': 'Não foi possível conectar ao servidor. Verifique sua conexão e o IP.',
+      };
+    }
+  }
+
+
   // Método para registrar um novo usuário
   Future<Map<String, dynamic>> registerUser({
     required String email,
