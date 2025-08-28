@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+// CORREÇÃO: Usando o caminho completo a partir do nome do pacote, que é mais seguro.
+import 'package:poli_images_front/features/home/presentation/pages/home_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -39,6 +41,14 @@ class _LoginPageState extends State<LoginPage> {
         message: result['message'],
         isSuccess: result['statusCode'] == 200,
       );
+
+      if (result['statusCode'] == 200) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      }
     }
   }
 
@@ -72,10 +82,14 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0,
         title: Row(
           children: [
-            Icon(Icons.widgets, color: Colors.teal[400]),
+            Image.asset(
+              'assets/logo_poliedro.png',
+              height: 24,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.widgets),
+            ),
             const SizedBox(width: 8),
             const Text(
-              'Poliedro',
+              'Poli Images',
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
