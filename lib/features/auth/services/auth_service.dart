@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  // ATENÇÃO: Substitua este IP pelo IP da SUA máquina na rede local.
-  // NÃO use 'localhost' ou '127.0.0.1'.
-  final String _baseUrl = 'http://10.2.2.115';
+  // ATENÇÃO: Verifique se este IP ainda é o IP da sua máquina
+  // CORREÇÃO 1: Adicionada a porta :8080 no final da URL
+  final String _baseUrl = 'http://10.2.2.115:8080';
 
   // Método para registrar um novo usuário
   Future<Map<String, dynamic>> registerUser({
@@ -17,7 +17,8 @@ class AuthService {
       final response = await http.post(
         url,
         headers: {
-          'Content-Type': 'application/json; charset=UTF-T',
+          // CORREÇÃO 2: Corrigido de UTF-T para UTF-8
+          'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode({
           'email': email,
