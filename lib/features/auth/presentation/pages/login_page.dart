@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-// Importa a página de cadastro para podermos navegar até ela
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -26,7 +25,6 @@ class _LoginPageState extends State<LoginPage> {
       _isLoading = true;
     });
 
-    // Chama o método de login do nosso serviço
     final result = await _authService.loginUser(
       email: email,
       password: password,
@@ -39,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     if (mounted) {
       _showFeedback(
         message: result['message'],
-        isSuccess: result['statusCode'] == 200, // Sucesso no login é 200 OK
+        isSuccess: result['statusCode'] == 200,
       );
     }
   }
@@ -70,7 +68,21 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        // ... (AppBar idêntico ao da RegisterPage) ...
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Row(
+          children: [
+            Icon(Icons.widgets, color: Colors.teal[400]),
+            const SizedBox(width: 8),
+            const Text(
+              'Poliedro',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -78,16 +90,28 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ... (Título idêntico) ...
+              const SizedBox(height: 20),
+              const Text(
+                'Seja bem-vindo\nPoli Images!',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
               const SizedBox(height: 40),
               Card(
-                // ... (Estilo do Card idêntico) ...
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
                     children: [
                       const Text(
-                        'Acesse sua conta', // Texto alterado
+                        'Acesse sua conta',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -97,17 +121,31 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 20),
                       TextField(
                         controller: _emailController,
-                        // ... (Resto do TextField idêntico) ...
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'E-mail',
+                          hintText: 'Inserir e-mail institucional',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: _passwordController,
-                        // ... (Resto do TextField idêntico) ...
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          labelText: 'Senha (CPF)',
+                          hintText: 'Inserir apenas números',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       _buildGradientButton(),
                       const SizedBox(height: 16),
-                      _buildRegisterButton(), // Botão para ir para a tela de cadastro
+                      _buildRegisterButton(),
                     ],
                   ),
                 ),
@@ -121,16 +159,41 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildGradientButton() {
     return ClipRRect(
-      // ... (Botão de gradiente idêntico, mas chama _handleLogin) ...
-      child: ElevatedButton(
-        onPressed: _handleLogin, // Chama a função de login
-        // ... (Resto do estilo) ...
-        child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                'Entrar', // Texto alterado
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF00A9B8), Color(0xFF00C7B3)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+        ),
+        child: ElevatedButton(
+          onPressed: _handleLogin,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
+              : const Text(
+                  'Entrar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+        ),
       ),
     );
   }
@@ -139,8 +202,11 @@ class _LoginPageState extends State<LoginPage> {
     return TextButton(
       onPressed: _navigateToRegister,
       child: Text(
-        'Não tem uma conta? Cadastre-se',
-        style: TextStyle(color: Colors.teal[400]),
+        'Não tem cadastro? Clique aqui',
+        style: TextStyle(
+          color: Colors.teal[400],
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

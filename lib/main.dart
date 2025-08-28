@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// Importa nossa nova página de cadastro organizada
-import 'features/auth/presentation/pages/register_page.dart';
+// 1. Importa a página de LOGIN em vez da de cadastro
+import 'features/auth/presentation/pages/login_page.dart';
 
 void main() {
   runApp(const PoliImagesApp());
@@ -18,7 +18,8 @@ class PoliImagesApp extends StatelessWidget {
         fontFamily: 'Roboto',
         primarySwatch: Colors.teal,
       ),
-      home: const RegisterPage(),
+      // 2. AQUI ESTÁ A CORREÇÃO: O app agora começa na LoginPage
+      home: const LoginPage(),
     );
   }
 }

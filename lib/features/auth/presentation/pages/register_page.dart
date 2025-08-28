@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// Importa nosso novo serviço de autenticação
 import '../../services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -12,38 +11,29 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService(); // Instância do nosso serviço
-
-  // Variável para controlar o estado de carregamento
+  final _authService = AuthService();
   bool _isLoading = false;
 
-  // Função ASSÍNCRONA para lidar com o registro
   Future<void> _handleRegister() async {
-    // Se já estiver carregando, não faz nada
     if (_isLoading) return;
 
-    // Pega os valores dos campos
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    // Ativa o estado de carregamento
     setState(() {
       _isLoading = true;
     });
 
-    // Chama o método do nosso serviço para registrar o usuário
     final result = await _authService.registerUser(
       email: email,
       password: password,
     );
 
-    // Desativa o estado de carregamento
     setState(() {
       _isLoading = false;
     });
 
-    // Mostra o feedback para o usuário
-    if (mounted) { // Garante que o widget ainda está na tela
+    if (mounted) {
       _showFeedback(
         message: result['message'],
         isSuccess: result['statusCode'] == 201,
@@ -51,13 +41,16 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // Função para mostrar SnackBar com feedback
   void _showFeedback({required String message, required bool isSuccess}) {
     final snackBar = SnackBar(
       content: Text(message),
       backgroundColor: isSuccess ? Colors.green[600] : Colors.red[600],
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _navigateToLogin() {
+    Navigator.of(context).pop();
   }
 
   @override
@@ -74,6 +67,9 @@ class _RegisterPageState extends State<RegisterPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        // Adiciona um botão de "voltar" automaticamente
+        automaticallyImplyLeading: true,
+        iconTheme: IconThemeData(color: Colors.grey[800]),
         title: Row(
           children: [
             Icon(Icons.widgets, color: Colors.teal[400]),
@@ -148,6 +144,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 24),
                       _buildGradientButton(),
+                      const SizedBox(height: 16),
+                      _buildLoginButton(),
                     ],
                   ),
                 ),
@@ -159,7 +157,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // Widget para o botão, agora mostra um loading
   Widget _buildGradientButton() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -196,6 +193,20 @@ class _RegisterPageState extends State<RegisterPage> {
                     color: Colors.white,
                   ),
                 ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return TextButton(
+      onPressed: _navigateToLogin,
+      child: Text(
+        'Já tem cadastro? Clique aqui para ir para a tela de login.',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.teal[400],
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
