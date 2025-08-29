@@ -1,58 +1,133 @@
 import 'package:flutter/material.dart';
+import '../../../../shared/widgets/app_drawer.dart';
+import '../../../auth/presentation/pages/login_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  void _navigateToGenerateImage(BuildContext context) {
-    // Ação temporária. No futuro, navegará para a página de Chat.
-  }
-
-  void _navigateToGallery(BuildContext context) {
-    // Ação temporária. No futuro, navegará para a página de Galeria.
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth > 768;
+
+        return Scaffold(
+          backgroundColor: isDesktop ? Colors.white : Colors.grey[100],
+          appBar: _buildAppBar(context, isDesktop),
+          drawer: isDesktop ? null : const AppDrawer(),
+          body: _buildBody(context, isDesktop),
+        );
+      },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
+    if (isDesktop) {
+      return AppBar(
+        backgroundColor: const Color(0xFF00A9B8),
+        automaticallyImplyLeading: false,
+        elevation: 1,
+        title: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1200),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Image.asset('assets/logo_poliedro.png', height: 24, color: Colors.white),
+                    const SizedBox(width: 8),
+                    const Text('Poliedro', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                Row(
+                  children: [
+                    _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
+                    _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
+                    _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
+                    _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
+                    _buildNavButton(
+                      text: 'Deslogar',
+                      icon: Icons.logout,
+                      onPressed: () {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      // AppBar para Telas Pequenas (Mobile)
+      return AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: Icon(Icons.menu, color: Colors.grey[800]),
-          onPressed: () {},
-        ),
         title: Row(
           children: [
-            Image.asset(
-              'assets/logo_poliedro.png',
-              height: 24,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.widgets),
-            ),
+            Image.asset('assets/logo_poliedro.png', height: 24),
             const SizedBox(width: 8),
             const Text(
               'Poli Images',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
             ),
           ],
         ),
+        iconTheme: IconThemeData(color: Colors.grey[800]),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: CircleAvatar(
               backgroundColor: Colors.grey[300],
-              child: Icon(
-                Icons.person,
-                color: Colors.grey[800],
-              ),
+              child: Icon(Icons.person, color: Colors.grey[800]),
             ),
           ),
         ],
-      ),
-      body: SingleChildScrollView(
+      );
+    }
+  }
+
+  Widget _buildBody(BuildContext context, bool isDesktop) {
+    final card1 = _buildFeatureCard(
+      context: context,
+      imagePath: 'assets/gerar_imagem.png',
+      buttonText: 'Gerar Nova Imagem',
+      onPressed: () {},
+    );
+
+    final card2 = _buildFeatureCard(
+      context: context,
+      imagePath: 'assets/galeria.png',
+      buttonText: 'Minha Galeria de Fotos',
+      onPressed: () {},
+    );
+
+    if (isDesktop) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1000),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 60.0, horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: card1),
+                const SizedBox(width: 60),
+                Expanded(child: card2),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Layout para Telas Pequenas (Mobile)
+      return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -62,20 +137,20 @@ class HomePage extends StatelessWidget {
                 context: context,
                 imagePath: 'assets/gerar_imagem.png',
                 buttonText: 'Gerar Nova Imagem',
-                onPressed: () => _navigateToGenerateImage(context),
+                onPressed: () {},
               ),
               const SizedBox(height: 24),
               _buildFeatureCard(
                 context: context,
                 imagePath: 'assets/galeria.png',
                 buttonText: 'Galeria de Fotos',
-                onPressed: () => _navigateToGallery(context),
+                onPressed: () {},
               ),
             ],
           ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildFeatureCard({
@@ -85,21 +160,21 @@ class HomePage extends StatelessWidget {
     required VoidCallback onPressed,
   }) {
     return Card(
-      elevation: 4,
+      elevation: 6,
+      shadowColor: Colors.black.withOpacity(0.1),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
             imagePath,
             fit: BoxFit.cover,
-            height: 200,
+            height: 250,
             width: double.infinity,
             errorBuilder: (context, error, stackTrace) {
               return Container(
-                height: 200,
+                height: 250,
                 color: Colors.grey[200],
                 alignment: Alignment.center,
                 child: const Icon(Icons.image_not_supported, color: Colors.grey),
@@ -114,23 +189,36 @@ class HomePage extends StatelessWidget {
                 onPressed: onPressed,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00A9B8),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: Text(
                   buttonText,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNavButton({
+    required String text,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, color: Colors.white, size: 18),
+      label: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        // A LINHA DO ERRO FOI REMOVIDA DAQUI
+      ).copyWith(
+        overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.1)),
       ),
     );
   }
