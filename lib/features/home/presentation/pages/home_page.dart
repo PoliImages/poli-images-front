@@ -35,17 +35,24 @@ class HomePage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Image.asset('assets/logo_poliedro.png', height: 24, color: Colors.white),
+                    // AJUSTE 1: Removido o `color: Colors.white` para mostrar o logo original.
+                    Image.asset('assets/logo_poliedro.png', height: 24),
                     const SizedBox(width: 8),
-                    const Text('Poliedro', style: TextStyle(fontWeight: FontWeight.bold)),
+                    // AJUSTE 2: Alterado o texto de "Poliedro" para "Poli Images".
+                    const Text('Poli Images', style: TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
                 Row(
                   children: [
                     _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
+                    // AJUSTE 3: Adicionado um SizedBox para espaçamento.
+                    const SizedBox(width: 10),
                     _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
+                    const SizedBox(width: 10),
                     _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
+                    const SizedBox(width: 10),
                     _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
+                    const SizedBox(width: 20), // Espaço maior antes do botão de sair
                     _buildNavButton(
                       text: 'Deslogar',
                       icon: Icons.logout,
@@ -64,7 +71,7 @@ class HomePage extends StatelessWidget {
         ),
       );
     } else {
-      // AppBar para Telas Pequenas (Mobile)
+      // AppBar para Telas Pequenas (Mobile) - Sem alterações aqui
       return AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
@@ -216,7 +223,6 @@ class HomePage extends StatelessWidget {
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        // A LINHA DO ERRO FOI REMOVIDA DAQUI
       ).copyWith(
         overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.1)),
       ),
