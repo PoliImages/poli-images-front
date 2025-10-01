@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 class AuthService {
   // ATENÇÃO: Verifique se este IP ainda é o IP da sua máquina
   // CORREÇÃO 1: Adicionada a porta :8080 no final da URL
-  //final String _baseUrl = 'http://10.2.2.115:8080';
+  final String _baseUrl = 'http://192.168.56.1:8080';
   //esta linha de cima estava funcionando na faculdade, para achar o numero certo tem que pegar o endereço ipv4 no cmd ipconfig
-  final String _baseUrl = 'http://192.168.15.40:8080'; //casa carol
+  // final String _baseUrl = 'http://192.168.15.40:8080'; //casa carol
   
   // --- MÉTODO DE LOGIN (NOVO) ---
   Future<Map<String, dynamic>> loginUser({
