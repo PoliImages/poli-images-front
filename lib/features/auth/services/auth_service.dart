@@ -7,7 +7,6 @@ class AuthService {
   final String _baseUrl = 'http://192.168.56.1:8080';
   //esta linha de cima estava funcionando na faculdade, para achar o numero certo tem que pegar o endereço ipv4 no cmd ipconfig
   // final String _baseUrl = 'http://192.168.15.40:8080'; //casa carol
-  
   // --- MÉTODO DE LOGIN (NOVO) ---
   Future<Map<String, dynamic>> loginUser({
     required String email,
