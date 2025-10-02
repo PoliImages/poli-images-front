@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 // 1. Importa a página de LOGIN em vez da de cadastro
 import 'features/auth/presentation/pages/login_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; //carreca o arquivo .env
 
-void main() {
+Future<void> main() async {
+  // 2. GARANTE que o Flutter esteja pronto para carregar assets (arquivos .env)
+  WidgetsFlutterBinding.ensureInitialized(); 
+
+  // 3. CARREGA o arquivo .env (deve ser feito antes de chamar runApp)
+  await dotenv.load(fileName: ".env");
+
   runApp(const PoliImagesApp());
 }
 

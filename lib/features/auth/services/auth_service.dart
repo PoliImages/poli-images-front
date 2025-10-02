@@ -1,12 +1,29 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart'; //checa o ambiente. verifica se está rodando na web
+import 'package:flutter/widgets.dart'; //checa a plataforma. verifica qual S.O. hospeda o app(android, ios, linux)
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-  // ATENÇÃO: Verifique se este IP ainda é o IP da sua máquina
-  // CORREÇÃO 1: Adicionada a porta :8080 no final da URL
-  final String _baseUrl = 'http://192.168.56.1:8080';
-  //esta linha de cima estava funcionando na faculdade, para achar o numero certo tem que pegar o endereço ipv4 no cmd ipconfig
-  // final String _baseUrl = 'http://192.168.15.40:8080'; //casa carol
+
+  // --- VARIÁVEIS DE CONFIGURAÇÃO ---
+  // static const String _port = '8080';
+  // static const String _physicalDeviceIp = '192.168.15.100'; //IP no mibile
+  // static const String _localHostIp = '127.0.0.1'; //IP localhost (desktop, web, emulador)
+
+  // --- NOVO GETTER _baseUrl (SOLUÇÃO DE AMBIENTE) ---
+  String get _baseUrl {
+    // LÊ as variáveis do arquivo .env
+    final String localIp = dotenv.env['DEVICE_IP'] ?? '127.0.0.1';
+    final String port = dotenv.env['SERVER_PORT'] ?? '8080';
+    // 1. Checa se é Web (Chrome) ou Desktop (Windows)
+    if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows) {
+      return 'http://127.0.0.1:$port';
+    }
+    // 2. Checa se é um dispositivo Físico (Android/iOS)
+    return 'http://$localIp:$port';
+  }
+
   // --- MÉTODO DE LOGIN (NOVO) ---
   Future<Map<String, dynamic>> loginUser({
     required String email,
