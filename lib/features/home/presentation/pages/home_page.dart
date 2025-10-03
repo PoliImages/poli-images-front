@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../chatbot/presentation/pages/chatbot_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -47,7 +48,15 @@ class HomePage extends StatelessWidget {
                     _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
                     // AJUSTE 3: Adicionado um SizedBox para espaçamento.
                     const SizedBox(width: 10),
-                    _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
+                    _buildNavButton(
+                      text: 'Gerar Nova Imagem', 
+                      icon: Icons.chat, 
+                      onPressed: () {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (context) => const ChatbotPage()),
+                          );
+                      }),
                     const SizedBox(width: 10),
                     _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
                     const SizedBox(width: 10),
@@ -104,7 +113,12 @@ class HomePage extends StatelessWidget {
       context: context,
       imagePath: 'assets/gerar_imagem.png',
       buttonText: 'Gerar Nova Imagem',
-      onPressed: () {},
+      onPressed: () {
+        Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (context) => const ChatbotPage()),
+        );
+      },
     );
 
     final card2 = _buildFeatureCard(
