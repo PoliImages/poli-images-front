@@ -5,17 +5,17 @@ import 'package:flutter/widgets.dart'; //checa a plataforma. verifica qual S.O. 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AuthService {
-
-  // --- VARIÁVEIS DE CONFIGURAÇÃO ---
-  // static const String _port = '8080';
-  // static const String _physicalDeviceIp = '192.168.15.100'; //IP no mibile
-  // static const String _localHostIp = '127.0.0.1'; //IP localhost (desktop, web, emulador)
-
   // --- NOVO GETTER _baseUrl (SOLUÇÃO DE AMBIENTE) ---
   String get _baseUrl {
     // LÊ as variáveis do arquivo .env
     final String localIp = dotenv.env['DEVICE_IP'] ?? '127.0.0.1';
     final String port = dotenv.env['SERVER_PORT'] ?? '8080';
+    final String ngrokUrl = dotenv.env['NGROK_URL'] ?? '';
+
+    if (ngrokUrl.isNotEmpty) {
+      return ngrokUrl; 
+    }
+
     // 1. Checa se é Web (Chrome) ou Desktop (Windows)
     if (kIsWeb || defaultTargetPlatform == TargetPlatform.windows) {
       return 'http://127.0.0.1:$port';
