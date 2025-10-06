@@ -82,7 +82,6 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0,
         title: Row(
           children: [
-            // CORREÇÃO: Usando Icon(Icons.widgets) como fallback se a imagem não carregar.
             Image.asset(
               'assets/logo_poliedro.png',
               height: 24,
@@ -123,8 +122,6 @@ class _LoginPageState extends State<LoginPage> {
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                    // Define o tamanho máximo para o Card em telas grandes (e.g., desktop/tablet).
-                    // Em telas menores que 450px, ele se adapta à largura total disponível (menos o padding).
                     maxWidth: 450, 
                   ),
                   child: Card(
@@ -135,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
-                        mainAxisSize: MainAxisSize.min, // Garante que a coluna se ajuste ao conteúdo
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
                             'Acesse sua conta',
@@ -179,7 +176,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              // === FIM DO AJUSTE DE RESPONSIVIDADE ===
             ],
           ),
         ),
@@ -193,7 +189,10 @@ class _LoginPageState extends State<LoginPage> {
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF00A9B8), Color(0xFF00C7B3)],
+            colors: [
+              Color(0xFF1FB4C3), 
+              Color(0xFF0D7480)
+            ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
