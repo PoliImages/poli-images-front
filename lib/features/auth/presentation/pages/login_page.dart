@@ -45,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
       if (result['statusCode'] == 200) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => HomePage(),
+            builder: (context) => const HomePage(),
           ),
         );
       }
@@ -82,10 +82,11 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 0,
         title: Row(
           children: [
+            // CORREÇÃO: Usando Icon(Icons.widgets) como fallback se a imagem não carregar.
             Image.asset(
               'assets/logo_poliedro.png',
               height: 24,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.widgets),
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.widgets, color: Colors.blueAccent),
             ),
             const SizedBox(width: 8),
             const Text(
@@ -115,55 +116,70 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 40),
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Acesse sua conta',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: 'E-mail',
-                          hintText: 'Inserir e-mail institucional',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+              
+              // === INÍCIO DO AJUSTE DE RESPONSIVIDADE ===
+              // O Center garante a centralização do Card em telas largas.
+              // O ConstrainedBox limita o tamanho MÁXIMO do Card.
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    // Define o tamanho máximo para o Card em telas grandes (e.g., desktop/tablet).
+                    // Em telas menores que 450px, ele se adapta à largura total disponível (menos o padding).
+                    maxWidth: 450, 
+                  ),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // Garante que a coluna se ajuste ao conteúdo
+                        children: [
+                          const Text(
+                            'Acesse sua conta',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Senha (CPF)',
-                          hintText: 'Inserir apenas números',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: 'E-mail',
+                              hintText: 'Inserir e-mail institucional',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Senha (CPF)',
+                              hintText: 'Inserir apenas números',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          _buildGradientButton(),
+                          const SizedBox(height: 16),
+                          _buildRegisterButton(),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                      _buildGradientButton(),
-                      const SizedBox(height: 16),
-                      _buildRegisterButton(),
-                    ],
+                    ),
                   ),
                 ),
               ),
+              // === FIM DO AJUSTE DE RESPONSIVIDADE ===
             ],
           ),
         ),
