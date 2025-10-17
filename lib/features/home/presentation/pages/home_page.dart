@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+// Importação da página real do chatbot.
+import '../../../chatbot/presentation/pages/chatbot_page.dart'; 
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -35,19 +38,25 @@ class HomePage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    // AJUSTE 1: Removido o `color: Colors.white` para mostrar o logo original.
                     Image.asset('assets/logo_poliedro.png', height: 24),
                     const SizedBox(width: 8),
-                    // AJUSTE 2: Alterado o texto de "Poliedro" para "Poli Images".
                     const Text('Poli Images', style: TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
                 Row(
                   children: [
                     _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
-                    // AJUSTE 3: Adicionado um SizedBox para espaçamento.
                     const SizedBox(width: 10),
-                    _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
+                    // AJUSTE NA NAVEGAÇÃO 1: Botão "Gerar Nova Imagem" no AppBar (Desktop)
+                    _buildNavButton(
+                      text: 'Gerar Nova Imagem', 
+                      icon: Icons.chat, 
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const ChatbotPage()),
+                        );
+                      }
+                    ),
                     const SizedBox(width: 10),
                     _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
                     const SizedBox(width: 10),
@@ -100,11 +109,16 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, bool isDesktop) {
+    // AJUSTE NA NAVEGAÇÃO 2: Botão "Gerar Nova Imagem" no Card (Corpo da Página)
     final card1 = _buildFeatureCard(
       context: context,
       imagePath: 'assets/gerar_imagem.png',
       buttonText: 'Gerar Nova Imagem',
-      onPressed: () {},
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const ChatbotPage()),
+        );
+      },
     );
 
     final card2 = _buildFeatureCard(
@@ -140,12 +154,8 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildFeatureCard(
-                context: context,
-                imagePath: 'assets/gerar_imagem.png',
-                buttonText: 'Gerar Nova Imagem',
-                onPressed: () {},
-              ),
+              // Usa o card1 já configurado com a navegação
+              card1, 
               const SizedBox(height: 24),
               _buildFeatureCard(
                 context: context,
