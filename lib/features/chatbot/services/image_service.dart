@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ImageService {
   // Carrega a URL do SEU BACKEND a partir do .env do Frontend
-  static final String _baseUrl = dotenv.env['BASE_URL']!;
+    static final String _baseUrl = dotenv.env['BASE_URL']!;
 
   // A função initialize() agora é apenas um placeholder no Frontend
   static void initialize() {
