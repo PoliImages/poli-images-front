@@ -15,6 +15,7 @@ class ImageService {
     try {
       // Chama o endpoint seguro no SEU Backend (http://localhost:8080/api/generate-image)
       final url = Uri.parse('$_baseUrl/api/generate-image');
+      print('Enviando requisição para o Backend: $url com prompt: $prompt');
       
       final response = await http.post(
         url,
