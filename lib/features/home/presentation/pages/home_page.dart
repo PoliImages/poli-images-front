@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../gallery/presentation/pages/gallery_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -35,21 +36,26 @@ class HomePage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    // AJUSTE 1: Removido o `color: Colors.white` para mostrar o logo original.
                     Image.asset('assets/logo_poliedro.png', height: 24),
                     const SizedBox(width: 8),
-                    // AJUSTE 2: Alterado o texto de "Poliedro" para "Poli Images".
                     const Text('Poli Images', style: TextStyle(fontWeight: FontWeight.bold)),
                   ],
                 ),
                 Row(
                   children: [
                     _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
-                    // AJUSTE 3: Adicionado um SizedBox para espaçamento.
                     const SizedBox(width: 10),
                     _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
                     const SizedBox(width: 10),
-                    _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
+                    _buildNavButton(
+                      text: 'Galeria de Fotos', 
+                      icon: Icons.photo_library, 
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => const GalleryPage()),
+                        );
+                      },
+                    ),
                     const SizedBox(width: 10),
                     _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
                     const SizedBox(width: 20), // Espaço maior antes do botão de sair
@@ -111,7 +117,11 @@ class HomePage extends StatelessWidget {
       context: context,
       imagePath: 'assets/galeria.png',
       buttonText: 'Minha Galeria de Fotos',
-      onPressed: () {},
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder:(context) => const GalleryPage()),
+        );
+      },
     );
 
     if (isDesktop) {
@@ -151,7 +161,11 @@ class HomePage extends StatelessWidget {
                 context: context,
                 imagePath: 'assets/galeria.png',
                 buttonText: 'Galeria de Fotos',
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const GalleryPage()),
+                  );
+                },
               ),
             ],
           ),
