@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 // Certifique-se de que estes imports apontem para os locais corretos no seu projeto
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+// Importe a HomePage corretamente.
+import '../../../home/presentation/pages/home_page.dart';
 
 
 class GalleryPage extends StatelessWidget {
@@ -30,81 +32,100 @@ class GalleryPage extends StatelessWidget {
   // --- Funções de Componentes Comuns (Mantidas para consistência visual) ---
 
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
+    final Color desktopAppBarColor = const Color(0xFF00A9B8); // Cor da AppBar do desktop
+
+    // Função para navegar para a HomePage
+    void navigateToHome(BuildContext context) {
+      // Usa pushAndRemoveUntil para limpar a pilha de navegação e ir para a HomePage
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+        (Route<dynamic> route) => false,
+      );
+    }
+
     // AppBar para Desktop
     if (isDesktop) {
       return AppBar(
-        backgroundColor: const Color(0xFF00A9B8),
+        backgroundColor: desktopAppBarColor,
         automaticallyImplyLeading: false,
         elevation: 1,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        title: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          // REMOVIDO: Padding horizontal aqui para que o conteúdo fique colado nas bordas de 1200px
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Torna a logo e o texto "Poli Images" clicáveis (Desktop)
+              InkWell(
+                onTap: () => navigateToHome(context), // Navega para a HomePage
+                child: Row(
                   children: [
-                    // Simulação do logo (use Icons.palette no lugar de Image.asset)
-                    const Icon(Icons.palette, color: Colors.white, size: 28),
+                    Image.asset('assets/logo_poliedro.png', height: 24),
                     const SizedBox(width: 8),
-                    const Text('Poli Images', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {
-                      // Simular navegação de volta (pop)
-                      Navigator.of(context).pop();
-                    }),
-                    const SizedBox(width: 10),
-                    _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
-                    const SizedBox(width: 10),
-                    // Botão da Galeria Ativo
-                    _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
-                    const SizedBox(width: 10),
-                    _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
-                    const SizedBox(width: 20),
-                    _buildNavButton(
-                      text: 'Deslogar',
-                      icon: Icons.logout,
-                      onPressed: () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
+                    const Text(
+                      'Poli Images',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // Mantém branco no desktop
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Row(
+                children: [
+                  _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {
+                    // Simular navegação de volta (pop)
+                    Navigator.of(context).pop();
+                  }),
+                  const SizedBox(width: 10),
+                  _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
+                  const SizedBox(width: 10),
+                  // Botão da Galeria Ativo
+                  _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
+                  const SizedBox(width: 10),
+                  _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
+                  const SizedBox(width: 20),
+                  _buildNavButton(
+                    text: 'Deslogar',
+                    icon: Icons.logout,
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       );
     } else {
-      // AppBar para Mobile
+      // AppBar para Mobile (Cor e estilo ajustados)
       return AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: desktopAppBarColor, // Cor da navbar do desktop
         elevation: 1,
-        title: Row(
-          children: [
-            const Icon(Icons.palette, color: Color(0xFF00A9B8), size: 24),
-            const SizedBox(width: 8),
-            const Text(
-              'Poli Images',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        iconTheme: IconThemeData(color: Colors.grey[800]),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              child: Icon(Icons.person, color: Colors.grey[800]),
-            ),
+        title: InkWell( // Torna a logo e o texto "Poli Images" clicáveis (Mobile)
+          onTap: () => navigateToHome(context), // Navega para a HomePage
+          child: Row(
+            children: [
+              Image.asset('assets/logo_poliedro.png', height: 24), // Usando a logo Poliedro
+              const SizedBox(width: 8),
+              const Text(
+                'Poli Images',
+                style: TextStyle(
+                  color: Colors.white, // Texto branco para contrastar com o fundo azul
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white), // Ícone do drawer branco
+        actions: const [
+          // REMOVIDO: Avatar do boneco (CircleAvatar com Icons.person)
         ],
       );
     }
@@ -146,58 +167,81 @@ class GalleryPage extends StatelessWidget {
 
     // Configuração do GridView (4 colunas no desktop, 2 no mobile)
     final int crossAxisCount = isDesktop ? 4 : 2;
+    // Padding padrão para as laterais
     final double horizontalPadding = isDesktop ? 50.0 : 16.0;
+    // Espaço adicional para a barra de rolagem no Desktop
+    final double rightPaddingWithScrollbar = isDesktop ? 50.0 + 20.0 : 16.0;
+
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 20),
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            right: rightPaddingWithScrollbar, // Padding ajustado para a barra de rolagem
+            top: 20,
+            bottom: 20
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cabeçalho com Ícone de Voltar e Título
-              Row(
+              // Cabeçalho com Ícone de Voltar e Título CENTRALIZADO (usando Stack)
+              Stack(
+                alignment: Alignment.center,
                 children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, size: isDesktop ? 30 : 24, color: Colors.black),
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Volta para a tela anterior (HomePage)
-                    },
+                  // Título Centralizado
+                  Container(
+                    width: double.infinity,
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Galeria de fotos',
+                      style: TextStyle(
+                        fontSize: isDesktop ? 30 : 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Galeria de fotos',
-                    style: TextStyle(
-                      fontSize: isDesktop ? 30 : 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                  // Botão de Voltar (alinhado à esquerda)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back, size: isDesktop ? 30 : 24, color: Colors.black),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Volta para a tela anterior (HomePage)
+                      },
                     ),
                   ),
                 ],
               ),
-              const Divider(height: 30),
+              
+              const SizedBox(height: 30), // Espaçamento após o título (substituindo o Divider)
               
               // GridView com as Pastas
               Expanded(
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: isDesktop ? 30 : 16,
-                    mainAxisSpacing: isDesktop ? 30 : 16,
-                    childAspectRatio: 0.85, // Proporção para o card da pasta
+                // O widget Scrollbar é usado para exibir a barra de rolagem
+                child: Scrollbar(
+                  // Garante que a barra de rolagem seja visível no desktop
+                  thumbVisibility: isDesktop,
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: isDesktop ? 30 : 16,
+                      mainAxisSpacing: isDesktop ? 30 : 16,
+                      childAspectRatio: 0.85, // Proporção para o card da pasta
+                    ),
+                    itemCount: subjects.length,
+                    itemBuilder: (context, index) {
+                      return _buildSubjectCard(
+                        subject: subjects[index],
+                        onTap: () {
+                          // Implemente a navegação para a pasta da matéria aqui
+                          debugPrint('Pasta ${subjects[index]} clicada');
+                        },
+                      );
+                    },
                   ),
-                  itemCount: subjects.length,
-                  itemBuilder: (context, index) {
-                    return _buildSubjectCard(
-                      subject: subjects[index],
-                      onTap: () {
-                        // Implemente a navegação para a pasta da matéria aqui
-                        // Por exemplo: Navigator.of(context).push(MaterialPageRoute(builder: (context) => SubjectDetailPage(subject: subjects[index])));
-                        debugPrint('Pasta ${subjects[index]} clicada');
-                      },
-                    );
-                  },
                 ),
               ),
             ],
@@ -229,18 +273,15 @@ class GalleryPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Simulação da Imagem da Pasta (Icon)
+              // Imagem da Pasta
               Container(
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.lightBlue.shade50,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.folder_shared_outlined, 
-                  color: Color(0xFF00A9B8), 
-                  size: 60
+                child: Image.asset(
+                  'assets/pasta_galeria.png',
+                  fit: BoxFit.contain,
+                  height: 120,
+                  width: 120,
                 ),
               ),
               const SizedBox(height: 16),
