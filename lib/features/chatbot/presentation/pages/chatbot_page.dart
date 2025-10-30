@@ -62,8 +62,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   @override
   void initState() {
     super.initState();
-    // NOVO: Inicializa o serviço (a chave fica segura no Backend)
-    ImageService.initialize();
+    // 🚨 CORREÇÃO: Removido o ImageService.initialize() pois o token é fixo agora.
     _sendInitialMessage();
   }
   
@@ -228,19 +227,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _addUserMessage(style);
     _focusNode.unfocus();
     
-    // Concatena o tópico com o estilo para o prompt final
-    final finalPrompt = "$_currentTopic em estilo $style";
+    // Concatena o tópico com o estilo para a mensagem de status (não para o backend)
+    final finalPromptForUser = "$_currentTopic em estilo $style";
 
     // Adiciona uma mensagem de loading
-    _addBotMessage('Gerando imagem para "$finalPrompt". Aguarde alguns segundos...');
+    _addBotMessage('Gerando imagem para "$finalPromptForUser". Aguarde alguns segundos...');
     
     setState(() {
       _chatState = ChatState.generating; // NOVO: Mudar para estado de carregamento
     });
     
     try {
-      // CHAMA O BACKEND VIA IMAGE SERVICE
-      final imageUrl = await ImageService.generateImage(finalPrompt);
+      // 🚨 CORREÇÃO AQUI: A chamada agora passa o prompt (_currentTopic) E o style (estilo) separadamente.
+      final imageUrl = await ImageService.generateImage(_currentTopic, style);
 
       setState(() {
         _messages.add(ChatMessage(
@@ -254,7 +253,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       
     } catch (e) {
       // Tratamento de erro
-      _addBotMessage('❌ Erro ao gerar imagem. Verifique se o Backend está rodando (erro: $e).');
+      _addBotMessage('❌ Erro ao gerar imagem. Verifique se o Backend está rodando corretamente (erro: $e).');
       
       setState(() {
         // Retorna ao estado de seleção de estilo para tentar novamente
