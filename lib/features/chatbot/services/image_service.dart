@@ -33,7 +33,7 @@ class ImageService {
         headers: {
           'Content-Type': 'application/json',
           // 🚨 AUTENTICAÇÃO CORRIGIDA
-          'Authorization': 'Bearer $_AUTH_TOKEN', 
+          // 'Authorization': 'Bearer $_AUTH_TOKEN', 
         },
         body: body,
       );
