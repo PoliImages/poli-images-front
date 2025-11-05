@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-
+import 'package:poli_images_front/features/auth/services/auth_service.dart'; // CORREÇÃO
 //Poliedro
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

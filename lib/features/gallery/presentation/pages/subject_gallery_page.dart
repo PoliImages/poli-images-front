@@ -4,6 +4,9 @@ import 'package:poli_images_front/features/home/presentation/pages/home_page.dar
 import 'package:poli_images_front/shared/widgets/app_drawer.dart';
 import 'package:poli_images_front/features/auth/services/auth_service.dart'; // UserSessionManager
 import 'package:poli_images_front/features/image/services/image_service.dart'; // ImageService e GalleryImage
+// 💡 NOVO IMPORT: Importa a página de visualização de detalhes da matéria
+import 'subject_detail_view.dart';
+
 
 // 💡 NOVO: Esta página será um StatefulWidget para gerenciar o estado dos dados
 class SubjectGalleryPage extends StatefulWidget {
@@ -51,21 +54,18 @@ class _SubjectGalleryPageState extends State<SubjectGalleryPage> {
     }
   }
   
-  // --- 2. FUNÇÃO DE NAVEGAÇÃO PARA A VISUALIZAÇÃO DE DETALHE ---
-  // 🚨 FUTURO: Esta função será implementada quando criarmos a página de detalhe
+  // --- 2. FUNÇÃO DE NAVEGAÇÃO PARA A VISUALIZAÇÃO DE DETALHE (CORRIGIDA) ---
   void _navigateToSubjectDetail(String subject, List<GalleryImage> images) {
     debugPrint('Navegando para o detalhe da pasta: $subject');
-    // Você navegará para a página SubjectDetailView (a ser criada) aqui:
-    /*
+    
+    // 🚀 NAVEGAÇÃO CORRIGIDA: Usa a SubjectDetailView e passa os dados necessários
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => SubjectDetailView(subject: subject, images: images),
+        builder: (context) => SubjectDetailView(
+          subject: subject, 
+          images: images,
+        ),
       ),
-    );
-    */
-    // Por enquanto, apenas mostra um SnackBar
-     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegar para $subject com ${images.length} imagens.')),
     );
   }
 

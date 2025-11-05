@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../../services/image_service.dart';
+import 'package:poli_images_front/features/chatbot/services/image_service.dart'; // CORREÇÃO 1
+import 'package:poli_images_front/features/auth/services/auth_service.dart'; // CORREÇÃO 2
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
-import 'dart:convert'; // Necessário para converter Base64
+import 'dart:convert'; 
 import 'dart:typed_data';
-
 
 // Modelo para representar uma mensagem no chat
 class ChatMessage {
@@ -39,7 +39,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   ChatState _chatState = ChatState.waitingForPrompt;
-  String _currentTopic = '';
+  
+  // 💡 NOVO: Variável para armazenar a MATÉRIA principal (ex: "Matemática")
+  String _currentSubject = ''; 
+  // Variável que armazena o PROMPT final a ser enviado (ex: "Matemática: equações")
+  String _currentPrompt = ''; 
 
   // Lista principal de matérias genéricas para seleção
   final List<String> _subjectsList = const [
@@ -70,6 +74,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
   
   void _sendInitialMessage() {
+    // Verifica se o usuário está logado antes de iniciar o chat
+    if (!UserSessionManager.isLoggedIn()) {
+      _addBotMessage('❌ **ERRO:** Você precisa estar logado para usar o gerador de imagens. Por favor, volte e faça login.');
+      setState(() => _chatState = ChatState.finished); // Trava o input
+      return;
+    }
+
     // Primeira Mensagem: Boas-vindas
     _addBotMessage(
         'Olá! Eu sou seu assistente de criação de imagens para **conteúdos escolares**.');
@@ -149,7 +160,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     return looksLikeASentence && isNotJustASubject;
   }
 
-  // --- FUNÇÃO PRINCIPAL ---
+  // --- FUNÇÃO PRINCIPAL DE LÓGICA DO CHAT (handleSubmitted) ---
   void _handleSubmitted(String text) {
     if (text.isEmpty) {
         _focusNode.requestFocus();
@@ -170,15 +181,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
         
         setState(() {
           _chatState = ChatState.waitingForTopicDetail;
-          _currentTopic = selectedSubject;
+          // 💡 ATUALIZADO: Armazenar a matéria principal aqui
+          _currentSubject = selectedSubject; 
+          // Usar a matéria como prompt inicial para combinar depois
+          _currentPrompt = selectedSubject; 
         });
         _addBotMessage(
             'Você escolheu **${selectedSubject}**! Por favor, digite o assunto específico que você deseja (ex: "cinemática", "geometria plana", "O Iluminismo").');
             
       } else if (_isDetailedPrompt(submittedText)) {
+        // Se for prompt detalhado, a matéria é 'Diversos' ou o que for apropriado
         setState(() {
           _chatState = ChatState.waitingForStyle;
-          _currentTopic = submittedText;
+          _currentSubject = 'Diversos'; // Matéria genérica se não foi selecionada
+          _currentPrompt = submittedText;
         });
         _addBotMessage('Ótima ideia! Qual estilo de imagem você prefere?');
         
@@ -190,18 +206,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
     } else if (_chatState == ChatState.waitingForTopicDetail) {
       
       if (_isTopicDetail(submittedText)) {
-        final combinedPrompt = '${_currentTopic}: $submittedText';
+        // Combina o Assunto Principal com o Detalhe
+        final combinedPrompt = '${_currentSubject}: $submittedText'; 
         
         setState(() {
           _chatState = ChatState.waitingForStyle;
-          _currentTopic = combinedPrompt;
+          _currentPrompt = combinedPrompt; // O prompt final para o DALL-E
         });
         // Mensagem de transição de estado para seleção de estilo
         _addBotMessage('Perfeito! Tópico definido como **$combinedPrompt**. Agora, qual estilo de imagem você prefere?');
 
       } else {
         _addBotMessage(
-            'Desculpe, esse termo não parece um tópico válido. Por favor, insira um assunto específico sobre **${_currentTopic}** que contenha palavras reconhecíveis, como "cinemática" ou "ondas sonoras".');
+            'Desculpe, esse termo não parece um tópico válido. Por favor, insira um assunto específico sobre **${_currentSubject}** que contenha palavras reconhecíveis, como "cinemática" ou "ondas sonoras".');
       }
     }
     
@@ -213,7 +230,15 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _addUserMessage(style);
     _focusNode.unfocus();
     
-    final finalPromptForUser = "$_currentTopic em estilo $style";
+    // Obter ID do usuário
+    final userId = UserSessionManager.currentUserId;
+    if (userId == null) {
+      _addBotMessage('❌ Erro de Autenticação: ID do usuário não encontrado. Por favor, faça login novamente.');
+      setState(() => _chatState = ChatState.finished);
+      return;
+    }
+
+    final finalPromptForUser = "$_currentPrompt em estilo $style";
 
     _addBotMessage('Gerando imagem para "$finalPromptForUser". Aguarde alguns segundos...');
     
@@ -222,13 +247,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
     });
     
     try {
-      // Chama o serviço que retorna a string Base64
-      final base64String = await ImageService.generateImage(_currentTopic, style);
+      // 🚀 MUDANÇA PRINCIPAL: Chama o serviço com userId e _currentSubject
+      final base64String = await ImageService.generateImage(
+        _currentPrompt, 
+        style, 
+        userId, 
+        _currentSubject // Matéria usada para AGRUPAR no servidor
+      );
 
       setState(() {
         _messages.add(ChatMessage(
-          text: 'Sua imagem foi gerada!', // Adiciona um pequeno texto
-          // Passa a string Base64 para a mensagem
+          text: 'Sua imagem foi gerada e **salva automaticamente** na sua galeria de **${_currentSubject}**! 🎉', 
           base64String: base64String, 
         ));
         _chatState = ChatState.finished;
@@ -236,23 +265,23 @@ class _ChatbotPageState extends State<ChatbotPage> {
       _scrollToBottom();
       
     } catch (e) {
-      _addBotMessage('❌ Erro ao gerar imagem. Verifique se o Backend está rodando corretamente (erro: $e).');
+      _addBotMessage('❌ Erro ao gerar imagem. Verifique se o Backend está rodando corretamente (erro: ${e.toString()}).');
       
       setState(() {
-        _chatState = ChatState.waitingForStyle;
+        _chatState = ChatState.waitingForStyle; // Retorna ao estado de escolha de estilo em caso de falha
       });
     }
   }
 
-  // 💡 NOVA FUNÇÃO: Converte a string Base64 para Uint8List
+  // 💡 FUNÇÃO DE CONVERSÃO Base64
   Uint8List _dataFromBase64String(String base64String) {
     // Remove possíveis cabeçalhos de URI, se existirem (ex: data:image/png;base64,)
     String cleanString = base64String.split(',').last;
     return base64Decode(cleanString);
   }
-
-  // --- Widgets de UI ---
-
+  
+  // --- Widgets de UI (SEM ALTERAÇÃO) ---
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -284,12 +313,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
   Widget _buildInputArea() {
     switch (_chatState) {
       case ChatState.waitingForPrompt:
-        return _buildTextInput(hintText: 'Digite o número da matéria ou o prompt completo.');
       case ChatState.waitingForTopicDetail:
-        return _buildTextInput(hintText: 'Digite o assunto específico de ${_currentTopic}');
+        String hintText = _chatState == ChatState.waitingForPrompt 
+          ? 'Digite o número da matéria ou o prompt completo.' 
+          : 'Digite o assunto específico de $_currentSubject';
+        return _buildTextInput(hintText: hintText);
+        
       case ChatState.waitingForStyle:
         return _buildStyleSelection();
-      case ChatState.generating: // Adiciona indicador de loading
+        
+      case ChatState.generating:
         return Container(
           padding: const EdgeInsets.all(16.0),
           alignment: Alignment.center,
@@ -303,6 +336,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             ],
           ),
         );
+        
       case ChatState.finished:
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -313,7 +347,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
               setState(() {
                 _messages.clear();
                 _chatState = ChatState.waitingForPrompt;
-                _currentTopic = '';
+                _currentPrompt = '';
+                _currentSubject = ''; // Limpa a matéria também
                 _sendInitialMessage();
               });
             },
@@ -327,6 +362,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
 
   Widget _buildTextInput({required String hintText}) {
+    // ... (Mantido o código do buildTextInput)
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
@@ -361,6 +397,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
 
   Widget _buildStyleSelection() {
+    // ... (Mantido o código do buildStyleSelection)
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       color: Colors.white,
@@ -381,6 +418,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
 
   Widget _buildStyleButton(String style) {
+    // ... (Mantido o código do buildStyleButton)
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: ElevatedButton(
@@ -475,7 +513,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     // LÓGICA DE SALVAMENTO ATUALIZADA (direto do Base64)
                     ElevatedButton.icon(
                       icon: const Icon(Icons.save_alt, size: 18),
-                      label: const Text('Salvar na Galeria'),
+                      label: const Text('Salvar na Galeria do Dispositivo'),
                       onPressed: () async {
                         final base64 = message.base64String;
                         if (base64 == null || base64.isEmpty) {
@@ -504,13 +542,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
                           final result = await ImageGallerySaverPlus.saveImage(
                             bytes,
                             quality: 80,
-                            name: 'GeneratedImage_${DateTime.now().millisecondsSinceEpoch}',
+                            name: 'PoliImage_${DateTime.now().millisecondsSinceEpoch}',
                           );
 
                           if (result != null && result['isSuccess'] == true) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Imagem salva na galeria com sucesso! 🎉'),
+                                content: Text('Imagem salva na galeria do dispositivo! 🎉'),
                                 backgroundColor: Colors.green,
                               ),
                             );

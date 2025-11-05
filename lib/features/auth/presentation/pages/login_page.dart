@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
-// CORREÇÃO: Usando o caminho completo a partir do nome do pacote, que é mais seguro.
+import 'package:poli_images_front/features/auth/services/auth_service.dart'; // Correção
 import 'package:poli_images_front/features/home/presentation/pages/home_page.dart';
 import 'register_page.dart';
 
@@ -43,6 +42,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (result['statusCode'] == 200) {
+        // O userId foi salvo internamente no Frontend AuthService.
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const HomePage(),
@@ -116,9 +116,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
               
-              // === INÍCIO DO AJUSTE DE RESPONSIVIDADE ===
-              // O Center garante a centralização do Card em telas largas.
-              // O ConstrainedBox limita o tamanho MÁXIMO do Card.
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
