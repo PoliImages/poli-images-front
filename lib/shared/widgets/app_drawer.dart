@@ -6,13 +6,17 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Define a cor da navbar do desktop (azul-ciano do Poliedro)
+    const Color desktopAppBarColor = Color(0xFF00A9B8);
+    
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.teal[400],
+            decoration: const BoxDecoration(
+              // AJUSTE AQUI: Trocado Colors.teal[400] pela cor desktopAppBarColor
+              color: desktopAppBarColor, 
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
