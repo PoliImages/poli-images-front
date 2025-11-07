@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../../services/image_service.dart';
+import '../../../chatbot/services/image_service.dart';
+import '../../../chatbot/services/gallery_service.dart';
+import '../../../gallery/models/image_model.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
-import 'dart:convert'; // Necessário para converter Base64
+import 'dart:convert';
 import 'dart:typed_data';
-
 
 // Modelo para representar uma mensagem no chat
 class ChatMessage {
   final String text;
   final bool isUser;
-  // Armazena a string Base64 da imagem
-  final String? base64String; 
+  final String? base64String;
 
   ChatMessage({required this.text, this.isUser = false, this.base64String});
 }
@@ -40,6 +40,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   final List<ChatMessage> _messages = [];
   ChatState _chatState = ChatState.waitingForPrompt;
   String _currentTopic = '';
+  String _currentStyle = ''; // ADICIONADO: Para salvar o estilo selecionado
 
   // Lista principal de matérias genéricas para seleção
   final List<String> _subjectsList = const [
@@ -70,11 +71,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
   }
   
   void _sendInitialMessage() {
-    // Primeira Mensagem: Boas-vindas
     _addBotMessage(
         'Olá! Eu sou seu assistente de criação de imagens para **conteúdos escolares**.');
     
-    // Segunda Mensagem: A Lista
     String listMessage = 'Para começar, escolha uma matéria da lista digitando o **número** correspondente, ou digite o seu prompt completo.\n\n';
     
     for (int i = 0; i < _subjectsList.length; i++) {
@@ -84,8 +83,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _addBotMessage(listMessage);
     WidgetsBinding.instance.addPostFrameCallback((_) => _focusNode.requestFocus());
   }
-
-  // --- Funções de Ajuda e Lógica de Chat ---
 
   String _normalizeText(String text) {
     String normalized = text.toLowerCase();
@@ -126,7 +123,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     });
   }
   
-  // Lógica de Validação
   final List<String> _genericSubjectsNormalized = const [
     'matematica', 'fisica', 'quimica', 'biologia', 'historia', 'geografia', 
     'portugues', 'sociologia', 'filosofia', 'arte'
@@ -149,7 +145,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     return looksLikeASentence && isNotJustASubject;
   }
 
-  // --- FUNÇÃO PRINCIPAL ---
   void _handleSubmitted(String text) {
     if (text.isEmpty) {
         _focusNode.requestFocus();
@@ -196,7 +191,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
           _chatState = ChatState.waitingForStyle;
           _currentTopic = combinedPrompt;
         });
-        // Mensagem de transição de estado para seleção de estilo
         _addBotMessage('Perfeito! Tópico definido como **$combinedPrompt**. Agora, qual estilo de imagem você prefere?');
 
       } else {
@@ -208,10 +202,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _focusNode.requestFocus();
   }
   
-  // --- FUNÇÃO ATUALIZADA PARA CHAMAR O BACKEND E GERAR IMAGEM ---
+  // FUNÇÃO ATUALIZADA: Agora salva o estilo selecionado
   Future<void> _handleStyleSelected(String style) async {
     _addUserMessage(style);
     _focusNode.unfocus();
+    
+    // Salva o estilo para usar depois no salvamento
+    _currentStyle = style;
     
     final finalPromptForUser = "$_currentTopic em estilo $style";
 
@@ -222,14 +219,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
     });
     
     try {
-      // Chama o serviço que retorna a string Base64
       final base64String = await ImageService.generateImage(_currentTopic, style);
 
       setState(() {
         _messages.add(ChatMessage(
-          text: 'Sua imagem foi gerada!', // Adiciona um pequeno texto
-          // Passa a string Base64 para a mensagem
-          base64String: base64String, 
+          text: 'Sua imagem foi gerada!',
+          base64String: base64String,
         ));
         _chatState = ChatState.finished;
       });
@@ -244,14 +239,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
-  // 💡 NOVA FUNÇÃO: Converte a string Base64 para Uint8List
   Uint8List _dataFromBase64String(String base64String) {
-    // Remove possíveis cabeçalhos de URI, se existirem (ex: data:image/png;base64,)
     String cleanString = base64String.split(',').last;
     return base64Decode(cleanString);
   }
-
-  // --- Widgets de UI ---
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +280,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         return _buildTextInput(hintText: 'Digite o assunto específico de ${_currentTopic}');
       case ChatState.waitingForStyle:
         return _buildStyleSelection();
-      case ChatState.generating: // Adiciona indicador de loading
+      case ChatState.generating:
         return Container(
           padding: const EdgeInsets.all(16.0),
           alignment: Alignment.center,
@@ -314,6 +305,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                 _messages.clear();
                 _chatState = ChatState.waitingForPrompt;
                 _currentTopic = '';
+                _currentStyle = '';
                 _sendInitialMessage();
               });
             },
@@ -394,7 +386,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     );
   }
 
-  @override
   Widget _buildChatBubble(ChatMessage message) {
     List<TextSpan> textSpans = [];
     final parts = message.text.split('**');
@@ -445,18 +436,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Exibe o texto APENAS se não for vazio
                   if (message.text.isNotEmpty)
                     RichText(text: TextSpan(children: textSpans)),
                   
-                  // Se houver Base64String, mostra a imagem e o botão de salvar
+                  // SEÇÃO ATUALIZADA: Botão de salvar agora salva no MongoDB também
                   if (message.base64String != null) ...[ 
                     if (message.text.isNotEmpty)
                       const SizedBox(height: 8),
 
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      // Usa Image.memory para exibir a imagem a partir dos bytes Base64
                       child: Image.memory(
                         _dataFromBase64String(message.base64String!), 
                         fit: BoxFit.cover,
@@ -472,7 +461,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     ),
                     const SizedBox(height: 8),
 
-                    // LÓGICA DE SALVAMENTO ATUALIZADA (direto do Base64)
+                    // BOTÃO ATUALIZADO: Agora salva na galeria E no MongoDB
                     ElevatedButton.icon(
                       icon: const Icon(Icons.save_alt, size: 18),
                       label: const Text('Salvar na Galeria'),
@@ -489,49 +478,84 @@ class _ChatbotPageState extends State<ChatbotPage> {
                         }
 
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Salvando imagem...'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Colors.blueGrey,
-                            ),
-                          );
+                          const SnackBar(
+                            content: Text('Salvando imagem...'),
+                            duration: Duration(seconds: 2),
+                            backgroundColor: Colors.blueGrey,
+                          ),
+                        );
 
                         try {
-                          // CONVERTE A STRING BASE64 em bytes
+                          // 1. Converter Base64 para bytes
                           Uint8List bytes = _dataFromBase64String(base64);
-
-                          // Salva os bytes da imagem
-                          final result = await ImageGallerySaverPlus.saveImage(
+                          
+                          // 2. Salvar na galeria do dispositivo
+                          final galleryResult = await ImageGallerySaverPlus.saveImage(
                             bytes,
                             quality: 80,
                             name: 'GeneratedImage_${DateTime.now().millisecondsSinceEpoch}',
                           );
 
-                          if (result != null && result['isSuccess'] == true) {
+                          // 3. Salvar no MongoDB
+                          final subject = ImageModel.extractSubject(_currentTopic);
+                          
+                          final imageModel = ImageModel(
+                            subject: subject,
+                            topic: _currentTopic,
+                            style: _currentStyle,
+                            base64String: base64,
+                            createdAt: DateTime.now(),
+                          );
+
+                          final dbSaved = await GalleryService.saveImage(imageModel);
+
+                          // 4. Verificar resultados e mostrar feedback apropriado
+                          if (galleryResult != null && 
+                              galleryResult['isSuccess'] == true && 
+                              dbSaved) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Imagem salva na galeria com sucesso! 🎉'),
+                                content: Text('✅ Imagem salva na galeria do dispositivo e no banco de dados! 🎉'),
                                 backgroundColor: Colors.green,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          } else if (galleryResult != null && galleryResult['isSuccess'] == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('⚠️ Imagem salva na galeria, mas falha ao salvar no banco de dados.'),
+                                backgroundColor: Colors.orange,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          } else if (dbSaved) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('⚠️ Imagem salva no banco de dados, mas falha ao salvar na galeria.'),
+                                backgroundColor: Colors.orange,
+                                duration: Duration(seconds: 3),
                               ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Falha ao salvar imagem. O sistema negou a permissão.'),
+                                content: Text('❌ Falha ao salvar imagem. Verifique as permissões e conexão.'),
                                 backgroundColor: Colors.red,
+                                duration: Duration(seconds: 3),
                               ),
                             );
                           }
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Erro ao salvar imagem. Erro de conversão Base64 ou permissão: $e'),
+                              content: Text('❌ Erro ao salvar: $e'),
                               backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 3),
                             ),
                           );
                         }
                       },
-                        style: ElevatedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.teal.shade800,
                       ),

@@ -1,27 +1,66 @@
 import 'package:flutter/material.dart';
-// Certifique-se de que estes imports apontem para os locais corretos no seu projeto
+import 'dart:convert';
+import 'dart:typed_data';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
-// Importe a HomePage corretamente.
 import '../../../home/presentation/pages/home_page.dart';
+import '../models/image_model.dart';
+import '../../services/gallery_service.dart';
 
-
-class GalleryPage extends StatelessWidget {
+class GalleryPage extends StatefulWidget {
   const GalleryPage({super.key});
+
+  @override
+  State<GalleryPage> createState() => _GalleryPageState();
+}
+
+class _GalleryPageState extends State<GalleryPage> {
+  Map<String, List<ImageModel>> _groupedImages = {};
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImages();
+  }
+
+  Future<void> _loadImages() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final images = await GalleryService.getAllImages();
+      final grouped = GalleryService.groupImagesBySubject(images);
+      
+      setState(() {
+        _groupedImages = grouped;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao carregar imagens: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Uint8List _dataFromBase64String(String base64String) {
+    String cleanString = base64String.split(',').last;
+    return base64Decode(cleanString);
+  }
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Define o breakpoint para responsividade
         final bool isDesktop = constraints.maxWidth > 768;
 
         return Scaffold(
-          // Fundo branco no desktop, cinza claro no mobile
           backgroundColor: isDesktop ? Colors.white : Colors.grey[100],
-          // Reutiliza a AppBar do layout principal
           appBar: _buildAppBar(context, isDesktop),
-          // A gaveta lateral é usada apenas no mobile
           drawer: isDesktop ? null : const AppDrawer(),
           body: _buildBody(context, isDesktop),
         );
@@ -29,21 +68,16 @@ class GalleryPage extends StatelessWidget {
     );
   }
 
-  // --- Funções de Componentes Comuns (Mantidas para consistência visual) ---
-
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
-    final Color desktopAppBarColor = const Color(0xFF00A9B8); // Cor da AppBar do desktop
+    final Color desktopAppBarColor = const Color(0xFF00A9B8);
 
-    // Função para navegar para a HomePage
     void navigateToHome(BuildContext context) {
-      // Usa pushAndRemoveUntil para limpar a pilha de navegação e ir para a HomePage
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const HomePage()),
         (Route<dynamic> route) => false,
       );
     }
 
-    // AppBar para Desktop
     if (isDesktop) {
       return AppBar(
         backgroundColor: desktopAppBarColor,
@@ -51,13 +85,11 @@ class GalleryPage extends StatelessWidget {
         elevation: 1,
         title: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
-          // REMOVIDO: Padding horizontal aqui para que o conteúdo fique colado nas bordas de 1200px
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Torna a logo e o texto "Poli Images" clicáveis (Desktop)
               InkWell(
-                onTap: () => navigateToHome(context), // Navega para a HomePage
+                onTap: () => navigateToHome(context),
                 child: Row(
                   children: [
                     Image.asset('assets/logo_poliedro.png', height: 24),
@@ -66,7 +98,7 @@ class GalleryPage extends StatelessWidget {
                       'Poli Images',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // Mantém branco no desktop
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -75,13 +107,11 @@ class GalleryPage extends StatelessWidget {
               Row(
                 children: [
                   _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {
-                    // Simular navegação de volta (pop)
                     Navigator.of(context).pop();
                   }),
                   const SizedBox(width: 10),
                   _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
                   const SizedBox(width: 10),
-                  // Botão da Galeria Ativo
                   _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
                   const SizedBox(width: 10),
                   _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
@@ -103,30 +133,26 @@ class GalleryPage extends StatelessWidget {
         ),
       );
     } else {
-      // AppBar para Mobile (Cor e estilo ajustados)
       return AppBar(
-        backgroundColor: desktopAppBarColor, // Cor da navbar do desktop
+        backgroundColor: desktopAppBarColor,
         elevation: 1,
-        title: InkWell( // Torna a logo e o texto "Poli Images" clicáveis (Mobile)
-          onTap: () => navigateToHome(context), // Navega para a HomePage
+        title: InkWell(
+          onTap: () => navigateToHome(context),
           child: Row(
             children: [
-              Image.asset('assets/logo_poliedro.png', height: 24), // Usando a logo Poliedro
+              Image.asset('assets/logo_poliedro.png', height: 24),
               const SizedBox(width: 8),
               const Text(
                 'Poli Images',
                 style: TextStyle(
-                  color: Colors.white, // Texto branco para contrastar com o fundo azul
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white), // Ícone do drawer branco
-        actions: const [
-          // REMOVIDO: Avatar do boneco (CircleAvatar com Icons.person)
-        ],
+        iconTheme: const IconThemeData(color: Colors.white),
       );
     }
   }
@@ -136,7 +162,6 @@ class GalleryPage extends StatelessWidget {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    // Mantido idêntico ao original
     return TextButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, color: Colors.white, size: 18),
@@ -150,28 +175,10 @@ class GalleryPage extends StatelessWidget {
     );
   }
 
-  // --- Implementação do Body da Galeria ---
-
   Widget _buildBody(BuildContext context, bool isDesktop) {
-    // Dados simulados das pastas/matérias
-    final List<String> subjects = [
-      'Português',
-      'Matemática',
-      'Biologia',
-      'História',
-      'Geografia',
-      'Inglês',
-      'Física',
-      'Química',
-    ];
-
-    // Configuração do GridView (4 colunas no desktop, 2 no mobile)
     final int crossAxisCount = isDesktop ? 4 : 2;
-    // Padding padrão para as laterais
     final double horizontalPadding = isDesktop ? 50.0 : 16.0;
-    // Espaço adicional para a barra de rolagem no Desktop
-    final double rightPaddingWithScrollbar = isDesktop ? 50.0 + 20.0 : 16.0;
-
+    final double rightPaddingWithScrollbar = isDesktop ? 70.0 : 16.0;
 
     return Center(
       child: ConstrainedBox(
@@ -179,18 +186,16 @@ class GalleryPage extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.only(
             left: horizontalPadding,
-            right: rightPaddingWithScrollbar, // Padding ajustado para a barra de rolagem
+            right: rightPaddingWithScrollbar,
             top: 20,
             bottom: 20
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cabeçalho com Ícone de Voltar e Título CENTRALIZADO (usando Stack)
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Título Centralizado
                   Container(
                     width: double.infinity,
                     alignment: Alignment.center,
@@ -203,46 +208,121 @@ class GalleryPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Botão de Voltar (alinhado à esquerda)
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       icon: Icon(Icons.arrow_back, size: isDesktop ? 30 : 24, color: Colors.black),
                       onPressed: () {
-                        Navigator.of(context).pop(); // Volta para a tela anterior (HomePage)
+                        Navigator.of(context).pop();
                       },
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: Icon(Icons.refresh, size: isDesktop ? 30 : 24, color: const Color(0xFF00A9B8)),
+                      tooltip: 'Recarregar imagens',
+                      onPressed: _loadImages,
                     ),
                   ),
                 ],
               ),
               
-              const SizedBox(height: 30), // Espaçamento após o título (substituindo o Divider)
+              const SizedBox(height: 30),
               
-              // GridView com as Pastas
               Expanded(
-                // O widget Scrollbar é usado para exibir a barra de rolagem
-                child: Scrollbar(
-                  // Garante que a barra de rolagem seja visível no desktop
-                  thumbVisibility: isDesktop,
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: isDesktop ? 30 : 16,
-                      mainAxisSpacing: isDesktop ? 30 : 16,
-                      childAspectRatio: 0.85, // Proporção para o card da pasta
-                    ),
-                    itemCount: subjects.length,
-                    itemBuilder: (context, index) {
-                      return _buildSubjectCard(
-                        subject: subjects[index],
-                        onTap: () {
-                          // Implemente a navegação para a pasta da matéria aqui
-                          debugPrint('Pasta ${subjects[index]} clicada');
-                        },
-                      );
-                    },
-                  ),
-                ),
+                child: _isLoading
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(color: Color(0xFF00A9B8)),
+                            SizedBox(height: 16),
+                            Text('Carregando imagens...'),
+                          ],
+                        ),
+                      )
+                    : _errorMessage != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                                const SizedBox(height: 16),
+                                Text(_errorMessage!, textAlign: TextAlign.center),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Tentar Novamente'),
+                                  onPressed: _loadImages,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF00A9B8),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : _groupedImages.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.photo_library_outlined, 
+                                         size: 100, 
+                                         color: Colors.grey.shade400),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Nenhuma imagem salva ainda',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Gere e salve suas primeiras imagens!',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : Scrollbar(
+                                thumbVisibility: isDesktop,
+                                child: GridView.builder(
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: isDesktop ? 30 : 16,
+                                    mainAxisSpacing: isDesktop ? 30 : 16,
+                                    childAspectRatio: 0.85,
+                                  ),
+                                  itemCount: _groupedImages.keys.length,
+                                  itemBuilder: (context, index) {
+                                    final subject = _groupedImages.keys.elementAt(index);
+                                    final images = _groupedImages[subject]!;
+                                    
+                                    return _buildSubjectCard(
+                                      subject: subject,
+                                      imageCount: images.length,
+                                      previewImage: images.first.base64String,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => SubjectImagesPage(
+                                              subject: subject,
+                                              images: images,
+                                            ),
+                                          ),
+                                        ).then((_) => _loadImages());
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
               ),
             ],
           ),
@@ -251,9 +331,10 @@ class GalleryPage extends StatelessWidget {
     );
   }
 
-  // Widget para simular o card de pasta da imagem
   Widget _buildSubjectCard({
     required String subject,
+    required int imageCount,
+    required String previewImage,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -273,33 +354,267 @@ class GalleryPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Imagem da Pasta
-              Container(
-                width: 120,
-                height: 120,
-                child: Image.asset(
-                  'assets/pasta_galeria.png',
-                  fit: BoxFit.contain,
-                  height: 120,
-                  width: 120,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.memory(
+                      _dataFromBase64String(previewImage),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image_not_supported, size: 50),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              // Nome do Assunto
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  subject,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  children: [
+                    Text(
+                      subject,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$imageCount ${imageCount == 1 ? "imagem" : "imagens"}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Nova página para exibir as imagens de uma matéria específica
+class SubjectImagesPage extends StatelessWidget {
+  final String subject;
+  final List<ImageModel> images;
+
+  const SubjectImagesPage({
+    super.key,
+    required this.subject,
+    required this.images,
+  });
+
+  Uint8List _dataFromBase64String(String base64String) {
+    String cleanString = base64String.split(',').last;
+    return base64Decode(cleanString);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(subject),
+        backgroundColor: const Color(0xFF00A9B8),
+        foregroundColor: Colors.white,
+      ),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.75,
+        ),
+        itemCount: images.length,
+        itemBuilder: (context, index) {
+          final image = images[index];
+          return _buildImageCard(context, image);
+        },
+      ),
+    );
+  }
+
+  Widget _buildImageCard(BuildContext context, ImageModel image) {
+    return Card(
+      elevation: 4,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          // Abre o modal para visualizar a imagem em tela cheia
+          showDialog(
+            context: context,
+            builder: (context) => _ImageDetailDialog(image: image),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Image.memory(
+                _dataFromBase64String(image.base64String),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.broken_image, size: 50),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    image.topic,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Estilo: ${image.style}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Dialog para visualizar a imagem em detalhes
+class _ImageDetailDialog extends StatelessWidget {
+  final ImageModel image;
+
+  const _ImageDetailDialog({required this.image});
+
+  Uint8List _dataFromBase64String(String base64String) {
+    String cleanString = base64String.split(',').last;
+    return base64Decode(cleanString);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            Flexible(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  _dataFromBase64String(image.base64String),
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    image.topic,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Estilo: ${image.style}'),
+                  Text('Matéria: ${image.subject}'),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.delete),
+                        label: const Text('Excluir'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Confirmar exclusão'),
+                              content: const Text('Deseja realmente excluir esta imagem?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancelar'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Excluir'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true && image.id != null) {
+                            final success = await GalleryService.deleteImage(image.id!);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(success 
+                                      ? 'Imagem excluída com sucesso!' 
+                                      : 'Erro ao excluir imagem'),
+                                  backgroundColor: success ? Colors.green : Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
