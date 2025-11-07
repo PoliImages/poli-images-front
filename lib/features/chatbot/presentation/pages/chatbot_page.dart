@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../../chatbot/services/image_service.dart';
-import '../../../chatbot/services/gallery_service.dart';
-import '../../../gallery/models/image_model.dart';
+import '../../../gallery/services/gallery_service.dart';
+import '../../../gallery/presentation/models/image_model.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'dart:convert';
 import 'dart:typed_data';

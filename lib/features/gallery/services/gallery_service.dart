@@ -1,15 +1,13 @@
-// lib/features/chatbot/services/gallery_service.dart
+// lib/features/gallery/services/gallery_service.dart
 
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../../gallery/models/image_model.dart';
+import '../presentation/models/image_model.dart';
 
 class GalleryService {
-  // Usa a mesma BASE_URL do .env que o ImageService
   static final String _baseUrl = dotenv.env['BASE_URL']!;
   
-  /// Salva uma imagem no MongoDB através do backend
   static Future<bool> saveImage(ImageModel image) async {
     try {
       final url = Uri.parse('$_baseUrl/api/images');
@@ -34,7 +32,6 @@ class GalleryService {
     }
   }
 
-  /// Busca todas as imagens do MongoDB
   static Future<List<ImageModel>> getAllImages() async {
     try {
       final url = Uri.parse('$_baseUrl/api/images');
@@ -60,7 +57,6 @@ class GalleryService {
     }
   }
 
-  /// Busca imagens filtradas por matéria
   static Future<List<ImageModel>> getImagesBySubject(String subject) async {
     try {
       final url = Uri.parse('$_baseUrl/api/images/subject/$subject');
@@ -86,7 +82,6 @@ class GalleryService {
     }
   }
 
-  /// Deleta uma imagem do MongoDB
   static Future<bool> deleteImage(String imageId) async {
     try {
       final url = Uri.parse('$_baseUrl/api/images/$imageId');
@@ -110,7 +105,6 @@ class GalleryService {
     }
   }
 
-  /// Agrupa imagens por matéria (helper local)
   static Map<String, List<ImageModel>> groupImagesBySubject(List<ImageModel> images) {
     final Map<String, List<ImageModel>> grouped = {};
     
