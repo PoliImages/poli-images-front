@@ -1,9 +1,15 @@
+// import 'dart:nativewrappers/_internal/vm/lib/ffi_native_type_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../services/image_service.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'dart:convert'; // Necessário para converter Base64
 import 'dart:typed_data';
+//ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
+import 'package:flutter/foundation.dart';
+
 
 
 // Modelo para representar uma mensagem no chat
@@ -251,6 +257,18 @@ class _ChatbotPageState extends State<ChatbotPage> {
     return base64Decode(cleanString);
   }
 
+  //função para download no navegador
+  void _downloadImageWeb(Uint8List bytes) {
+    final blob = html.Blob([bytes], 'image/png');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    final anchor = html.AnchorElement(href: url)
+      ..download = "imagem_${DateTime.now().millisecondsSinceEpoch}.png"
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  }
+
   // --- Widgets de UI ---
 
   @override
@@ -472,12 +490,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     ),
                     const SizedBox(height: 8),
 
-                    // LÓGICA DE SALVAMENTO ATUALIZADA (direto do Base64)
+                    // LÓGICA DE SALVAMENTO ATUALIZADA (mobile + web)
                     ElevatedButton.icon(
-                      icon: const Icon(Icons.save_alt, size: 18),
-                      label: const Text('Salvar na Galeria'),
+                      icon: const Icon(Icons.download, size: 18),
+                      label: const Text('Baixar imagem'),
                       onPressed: () async {
                         final base64 = message.base64String;
+
                         if (base64 == null || base64.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -488,50 +507,44 @@ class _ChatbotPageState extends State<ChatbotPage> {
                           return;
                         }
 
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        Uint8List bytes = _dataFromBase64String(base64);
+
+                        if (kIsWeb) {
+                          // 👉 DOWNLOAD WEB (Notebook)
+                          _downloadImageWeb(bytes);
+                          ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Salvando imagem...'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Colors.blueGrey,
+                              content: Text('Download iniciado!'),
+                              backgroundColor: Colors.green,
                             ),
                           );
+                          return;
+                        }
 
-                        try {
-                          // CONVERTE A STRING BASE64 em bytes
-                          Uint8List bytes = _dataFromBase64String(base64);
+                        // 👉 SALVAR NA GALERIA (Android/iOS)
+                        final result = await ImageGallerySaverPlus.saveImage(
+                          bytes,
+                          quality: 90,
+                          name: 'GeneratedImage_${DateTime.now().millisecondsSinceEpoch}',
+                        );
 
-                          // Salva os bytes da imagem
-                          final result = await ImageGallerySaverPlus.saveImage(
-                            bytes,
-                            quality: 80,
-                            name: 'GeneratedImage_${DateTime.now().millisecondsSinceEpoch}',
-                          );
-
-                          if (result != null && result['isSuccess'] == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Imagem salva na galeria com sucesso! 🎉'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Falha ao salvar imagem. O sistema negou a permissão.'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        } catch (e) {
+                        if (result != null && result['isSuccess'] == true) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erro ao salvar imagem. Erro de conversão Base64 ou permissão: $e'),
+                            const SnackBar(
+                              content: Text('Imagem salva na galeria com sucesso! 🎉'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Falha ao salvar imagem!'),
                               backgroundColor: Colors.red,
                             ),
                           );
                         }
                       },
-                        style: ElevatedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.teal.shade800,
                       ),
