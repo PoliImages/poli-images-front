@@ -35,7 +35,6 @@ enum ChatState {
 class _ChatbotPageState extends State<ChatbotPage> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   ChatState _chatState = ChatState.waitingForPrompt;
@@ -425,14 +424,29 @@ class _ChatbotPageState extends State<ChatbotPage> {
       child: Row(
         mainAxisAlignment:
             message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!message.isUser)
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: CircleAvatar(
-                child: Icon(Icons.psychology_alt, color: Colors.white),
-                backgroundColor: Colors.teal,
                 radius: 16,
+                backgroundColor: Colors.transparent,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/chatbot.png',
+                    fit: BoxFit.cover,
+                    width: 32,
+                    height: 32,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const CircleAvatar(
+                        child: Icon(Icons.psychology_alt, color: Colors.white),
+                        backgroundColor: Colors.teal,
+                        radius: 16,
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           Flexible(

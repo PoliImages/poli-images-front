@@ -9,6 +9,9 @@ import '../../../gallery/presentation/pages/gallery_page.dart';
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  static const Color _gradientStartColor = Color(0xFF1FB4C3);
+  static const Color _gradientEndColor = Color(0xFF0D7480);
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -25,100 +28,121 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  // Função auxiliar para navegar para o Chatbot
+  void navigateToChatbot(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const ChatbotPage()),
+    );
+  }
+
+  // Função para navegar para a HomePage (usada no logo)
+  void navigateToHome(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const HomePage()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
+    final Color desktopAppBarColor = const Color(0xFF00A9B8);
+    
     if (isDesktop) {
       return AppBar(
-        backgroundColor: const Color(0xFF00A9B8),
+        backgroundColor: desktopAppBarColor,
         automaticallyImplyLeading: false,
         elevation: 1,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        title: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Logo Clicável e alinhado à esquerda
+              InkWell(
+                onTap: () => navigateToHome(context), // Navega para a HomePage
+                child: Row(
                   children: [
                     Image.asset('assets/logo_poliedro.png', height: 24),
                     const SizedBox(width: 8),
-                    const Text('Poli Images', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Poli Images', 
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.black
+                      ),
+                      ),
                   ],
                 ),
-                Row(
-                  children: [
-                    _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
-                    const SizedBox(width: 10),
-                    // AJUSTE NA NAVEGAÇÃO 1: Botão "Gerar Nova Imagem" no AppBar (Desktop)
-                    _buildNavButton(
-                      text: 'Gerar Nova Imagem', 
-                      icon: Icons.chat, 
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const ChatbotPage()),
-                        );
-                      }
-                    ),
-                    const SizedBox(width: 10),
-                    _buildNavButton(
-                      text: 'Galeria de Fotos', 
-                      icon: Icons.photo_library, 
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const GalleryPage()),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
-                    const SizedBox(width: 20), // Espaço maior antes do botão de sair
-                    _buildNavButton(
-                      text: 'Deslogar',
-                      icon: Icons.logout,
-                      onPressed: () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              Row(
+                children: [
+                  // *** ESPAÇO AUMENTADO PARA 100 PIXELS ***
+                  // const SizedBox(width: 100), 
+                  // ****************************************
+                  _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
+                  const SizedBox(width: 10),
+                  // Botão "Gerar Nova Imagem"
+                  _buildNavButton(
+                    text: 'Gerar Nova Imagem', 
+                    icon: Icons.chat, 
+                    onPressed: () => navigateToChatbot(context),
+                  ),
+                  const SizedBox(width: 10),
+                  _buildNavButton(
+                    text: 'Galeria de Fotos', 
+                    icon: Icons.photo_library, 
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const GalleryPage()),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                  // Botão "Deslogar"
+                  _buildNavButton(
+                    text: 'Deslogar',
+                    icon: Icons.logout,
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       );
     } else {
-      // AppBar para Telas Pequenas (Mobile) - Sem alterações aqui
+      // AppBar para Mobile (Cor e estilo ajustados)
       return AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: desktopAppBarColor, // Cor azul consistente
         elevation: 1,
-        title: Row(
-          children: [
-            Image.asset('assets/logo_poliedro.png', height: 24),
-            const SizedBox(width: 8),
-            const Text(
-              'Poli Images',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        iconTheme: IconThemeData(color: Colors.grey[800]),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              child: Icon(Icons.person, color: Colors.grey[800]),
-            ),
+        // Logo Clicável e alinhado à esquerda
+        title: InkWell(
+          onTap: () => navigateToHome(context), // Navega para a HomePage
+          child: Row(
+            children: [
+              Image.asset('assets/logo_poliedro.png', height: 24),
+              const SizedBox(width: 8),
+              const Text(
+                'Poli Images',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), 
+              ),
+            ],
           ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white), // Ícone do drawer branco
+        actions: const [
+          // CircleAvatar removido para consistência
         ],
       );
     }
   }
 
   Widget _buildBody(BuildContext context, bool isDesktop) {
-    // AJUSTE NA NAVEGAÇÃO 2: Botão "Gerar Nova Imagem" no Card (Corpo da Página)
+    // Botão "Gerar Nova Imagem" no Card (Corpo da Página)
     final card1 = _buildFeatureCard(
       context: context,
       imagePath: 'assets/gerar_imagem.png',
@@ -167,7 +191,6 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Usa o card1 já configurado com a navegação
               card1, 
               const SizedBox(height: 24),
               _buildFeatureCard(

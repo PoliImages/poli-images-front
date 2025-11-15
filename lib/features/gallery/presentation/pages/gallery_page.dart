@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-// Certifique-se de que estes imports apontem para os locais corretos no seu projeto
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
-// Importe a HomePage corretamente.
 import '../../../home/presentation/pages/home_page.dart';
-
+import '../../../chatbot/presentation/pages/chatbot_page.dart';
 
 class GalleryPage extends StatelessWidget {
   const GalleryPage({super.key});
@@ -34,12 +32,19 @@ class GalleryPage extends StatelessWidget {
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
     final Color desktopAppBarColor = const Color(0xFF00A9B8); // Cor da AppBar do desktop
 
-    // Função para navegar para a HomePage
+    // navega para a HomePage
     void navigateToHome(BuildContext context) {
       // Usa pushAndRemoveUntil para limpar a pilha de navegação e ir para a HomePage
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const HomePage()),
         (Route<dynamic> route) => false,
+      );
+    }
+    
+    // navega para a ChatbotPage
+    void navigateToChatbot(BuildContext context) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const ChatbotPage()),
       );
     }
 
@@ -66,7 +71,7 @@ class GalleryPage extends StatelessWidget {
                       'Poli Images',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // Mantém branco no desktop
+                        color: Colors.black, // Mantém branco no desktop
                       ),
                     ),
                   ],
@@ -79,13 +84,16 @@ class GalleryPage extends StatelessWidget {
                     Navigator.of(context).pop();
                   }),
                   const SizedBox(width: 10),
-                  _buildNavButton(text: 'Gerar Nova Imagem', icon: Icons.chat, onPressed: () {}),
+                  // AÇÃO MODIFICADA AQUI: Navega para a ChatbotPage
+                  _buildNavButton(
+                      text: 'Gerar Nova Imagem', 
+                      icon: Icons.chat, 
+                      onPressed: () => navigateToChatbot(context),
+                    ),
                   const SizedBox(width: 10),
                   // Botão da Galeria Ativo
                   _buildNavButton(text: 'Galeria de Fotos', icon: Icons.photo_library, onPressed: () {}),
                   const SizedBox(width: 10),
-                  _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
-                  const SizedBox(width: 20),
                   _buildNavButton(
                     text: 'Deslogar',
                     icon: Icons.logout,
@@ -125,7 +133,6 @@ class GalleryPage extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Colors.white), // Ícone do drawer branco
         actions: const [
-          // REMOVIDO: Avatar do boneco (CircleAvatar com Icons.person)
         ],
       );
     }
