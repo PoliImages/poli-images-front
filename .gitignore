@@ -1,5 +1,13 @@
 .env
 
+# Flutter generated files
+*/flutter/generated_plugin_registrant.cc
+*/flutter/generated_plugins.cmake
+**/GeneratedPluginRegistrant.swift
+
+# Dependencies lock file (for Flutter apps)
+pubspec.lock
+
 # Miscellaneous
 *.class
 *.log
