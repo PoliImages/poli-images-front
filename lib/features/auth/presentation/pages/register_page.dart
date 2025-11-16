@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
-//Poliedro
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -39,7 +38,6 @@ class _RegisterPageState extends State<RegisterPage> {
         message: result['message'],
         isSuccess: result['statusCode'] == 201,
       );
-      // Se o registro for bem-sucedido, volta para a tela de login.
       if (result['statusCode'] == 201) {
         _navigateToLogin();
       }
@@ -76,8 +74,8 @@ class _RegisterPageState extends State<RegisterPage> {
         title: Row(
           children: [
             Image.asset(
-              'assets/logo_poliedro.png',
-              height: 24,
+              'assets/logo_polimages.png',
+              height: 27,
               errorBuilder: (context, error, stackTrace) => const Icon(Icons.widgets, color: Colors.blueAccent),
             ),
             const SizedBox(width: 8),
@@ -109,13 +107,9 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 40),
 
-              // === INÍCIO DO AJUSTE DE RESPONSIVIDADE ===
-              // O Center garante a centralização do Card em telas largas.
-              // O ConstrainedBox limita o tamanho MÁXIMO do Card.
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                    // Largura máxima para o formulário
                     maxWidth: 450, 
                   ),
                   child: Card(
@@ -126,7 +120,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
-                        mainAxisSize: MainAxisSize.min, // Ajusta a coluna ao seu conteúdo
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
                             'Crie uma conta',
@@ -170,7 +164,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
               ),
-              // === FIM DO AJUSTE DE RESPONSIVIDADE ===
             ],
           ),
         ),

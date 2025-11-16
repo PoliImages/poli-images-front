@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-// CORREÇÃO: Usando o caminho completo a partir do nome do pacote, que é mais seguro.
 import 'package:poli_images_front/features/home/presentation/pages/home_page.dart';
 import 'register_page.dart';
 
@@ -83,8 +82,8 @@ class _LoginPageState extends State<LoginPage> {
         title: Row(
           children: [
             Image.asset(
-              'assets/logo_poliedro.png',
-              height: 24,
+              'assets/logo_polimages.png',
+              height: 27,
               errorBuilder: (context, error, stackTrace) => const Icon(Icons.widgets, color: Colors.blueAccent),
             ),
             const SizedBox(width: 8),
@@ -116,9 +115,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
               
-              // === INÍCIO DO AJUSTE DE RESPONSIVIDADE ===
-              // O Center garante a centralização do Card em telas largas.
-              // O ConstrainedBox limita o tamanho MÁXIMO do Card.
               Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(

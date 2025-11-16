@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// Importação da página real do chatbot.
 import '../../../chatbot/presentation/pages/chatbot_page.dart'; 
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
@@ -16,7 +15,7 @@ class HomePage extends StatelessWidget {
         final bool isDesktop = constraints.maxWidth > 768;
 
         return Scaffold(
-          backgroundColor: isDesktop ? Colors.white : Colors.grey[100],
+          backgroundColor: Colors.white, 
           appBar: _buildAppBar(context, isDesktop),
           drawer: isDesktop ? null : const AppDrawer(),
           body: _buildBody(context, isDesktop),
@@ -25,100 +24,125 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  void navigateToChatbot(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const ChatbotPage()),
+    );
+  }
+
+  void navigateToHome(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const HomePage()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDesktop) {
+    const Color appBarColor = Colors.white; 
+    const Color iconTextColor = Colors.black; 
+
     if (isDesktop) {
       return AppBar(
-        backgroundColor: const Color(0xFF00A9B8),
+        backgroundColor: appBarColor, 
         automaticallyImplyLeading: false,
         elevation: 1,
-        title: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        title: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start, 
+            children: [
+              const SizedBox(width: 50),
+              
+              InkWell(
+                onTap: () => navigateToHome(context),
+                child: Row(
                   children: [
-                    Image.asset('assets/logo_poliedro.png', height: 24),
+                    Image.asset('assets/logo_polimages.png', height: 27),
                     const SizedBox(width: 8),
-                    const Text('Poli Images', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Poli Images', 
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.black
+                      ),
+                      ),
                   ],
                 ),
-                Row(
-                  children: [
-                    _buildNavButton(text: 'Página Inicial', icon: Icons.home, onPressed: () {}),
-                    const SizedBox(width: 10),
-                    // AJUSTE NA NAVEGAÇÃO 1: Botão "Gerar Nova Imagem" no AppBar (Desktop)
-                    _buildNavButton(
-                      text: 'Gerar Nova Imagem', 
-                      icon: Icons.chat, 
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const ChatbotPage()),
-                        );
-                      }
-                    ),
-                    const SizedBox(width: 10),
-                    _buildNavButton(
-                      text: 'Galeria de Fotos', 
-                      icon: Icons.photo_library, 
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => const GalleryPage()),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    _buildNavButton(text: 'Minha Conta', icon: Icons.person, onPressed: () {}),
-                    const SizedBox(width: 20), // Espaço maior antes do botão de sair
-                    _buildNavButton(
-                      text: 'Deslogar',
-                      icon: Icons.logout,
-                      onPressed: () {
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              
+              const Spacer(), 
+
+              Row(
+                children: [
+                  _buildNavButton(
+                    text: 'Página Inicial', 
+                    icon: Icons.home, 
+                    onPressed: () {},
+                    iconTextColor: iconTextColor,
+                  ),
+                  const SizedBox(width: 10),
+                  _buildNavButton(
+                    text: 'Gerar Nova Imagem', 
+                    icon: Icons.chat, 
+                    onPressed: () => navigateToChatbot(context),
+                    iconTextColor: iconTextColor,
+                  ),
+                  const SizedBox(width: 10),
+                  _buildNavButton(
+                    text: 'Galeria de Fotos', 
+                    icon: Icons.photo_library, 
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const GalleryPage()),
+                      );
+                    },
+                    iconTextColor: iconTextColor,
+                  ),
+                  
+                  const SizedBox(width: 20), 
+                  
+                  _buildNavButton(
+                    text: 'Deslogar',
+                    icon: Icons.logout,
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginPage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                    iconTextColor: iconTextColor,
+                  ),
+                  const SizedBox(width: 50),
+                ],
+              ),
+            ],
           ),
         ),
       );
     } else {
-      // AppBar para Telas Pequenas (Mobile) - Sem alterações aqui
       return AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor, 
         elevation: 1,
-        title: Row(
-          children: [
-            Image.asset('assets/logo_poliedro.png', height: 24),
-            const SizedBox(width: 8),
-            const Text(
-              'Poli Images',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        iconTheme: IconThemeData(color: Colors.grey[800]),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey[300],
-              child: Icon(Icons.person, color: Colors.grey[800]),
-            ),
+        title: InkWell(
+          onTap: () => navigateToHome(context),
+          child: Row(
+            children: [
+              Image.asset('assets/logo_polimages.png', height: 27),
+              const SizedBox(width: 8),
+              const Text(
+                'Poli Images',
+                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold), 
+              ),
+            ],
           ),
-        ],
+        ),
+        iconTheme: const IconThemeData(color: iconTextColor), 
+        actions: const [],
       );
     }
   }
 
   Widget _buildBody(BuildContext context, bool isDesktop) {
-    // AJUSTE NA NAVEGAÇÃO 2: Botão "Gerar Nova Imagem" no Card (Corpo da Página)
     final card1 = _buildFeatureCard(
       context: context,
       imagePath: 'assets/gerar_imagem.png',
@@ -160,26 +184,15 @@ class HomePage extends StatelessWidget {
         ),
       );
     } else {
-      // Layout para Telas Pequenas (Mobile)
       return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Usa o card1 já configurado com a navegação
               card1, 
               const SizedBox(height: 24),
-              _buildFeatureCard(
-                context: context,
-                imagePath: 'assets/galeria.png',
-                buttonText: 'Galeria de Fotos',
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => const GalleryPage()),
-                  );
-                },
-              ),
+              card2, 
             ],
           ),
         ),
@@ -222,7 +235,7 @@ class HomePage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onPressed,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00A9B8),
+                  backgroundColor: const Color(0xFF00A9B8), 
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
@@ -242,16 +255,17 @@ class HomePage extends StatelessWidget {
     required String text,
     required IconData icon,
     required VoidCallback onPressed,
+    required Color iconTextColor, 
   }) {
     return TextButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, color: Colors.white, size: 18),
-      label: Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      icon: Icon(icon, color: iconTextColor, size: 18), 
+      label: Text(text, style: TextStyle(color: iconTextColor, fontWeight: FontWeight.w600)), 
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ).copyWith(
-        overlayColor: MaterialStateProperty.all(Colors.white.withOpacity(0.1)),
+        overlayColor: MaterialStateProperty.all(Colors.black.withOpacity(0.1)), 
       ),
     );
   }

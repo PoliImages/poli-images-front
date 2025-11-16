@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:poli_images_front/features/auth/presentation/pages/login_page.dart';
+import 'package:poli_images_front/features/home/presentation/pages/home_page.dart'; 
+import 'package:poli_images_front/features/chatbot/presentation/pages/chatbot_page.dart'; 
+import 'package:poli_images_front/features/gallery/presentation/pages/gallery_page.dart'; 
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
+  void _navigateToHomeAndClearStack(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(); 
+    }
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const HomePage()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Define a cor da navbar do desktop (azul-ciano do Poliedro)
-    const Color desktopAppBarColor = Color(0xFF00A9B8);
+    const Color desktopAppBarColor = Colors.white; 
     
     return Drawer(
       child: ListView(
@@ -15,59 +27,61 @@ class AppDrawer extends StatelessWidget {
         children: [
           DrawerHeader(
             decoration: const BoxDecoration(
-              // AJUSTE AQUI: Trocado Colors.teal[400] pela cor desktopAppBarColor
-              color: desktopAppBarColor, 
+              color: Colors.white, 
             ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  'Poli Images',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+            child: InkWell(
+              onTap: () => _navigateToHomeAndClearStack(context),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      Image(
+                        image: AssetImage('assets/logo_poliedro.png'), 
+                        height: 32,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Poli Images',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Navegue pelo App',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+                  SizedBox(height: 8),
+                ],
+              ),
             ),
           ),
           _buildDrawerItem(
-            icon: Icons.home_outlined,
+            icon: Icons.home, 
             text: 'Página Inicial',
             onTap: () {
-              // Já estamos na home, então apenas fechamos o drawer
-              Navigator.of(context).pop();
+              _navigateToHomeAndClearStack(context);
             },
           ),
           _buildDrawerItem(
-            icon: Icons.chat_bubble_outline,
+            icon: Icons.chat, 
             text: 'Gerar Nova Imagem',
             onTap: () {
-              // TODO: Navegar para a página de Chat
+              Navigator.of(context).pop(); 
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ChatbotPage()),
+              );
             },
           ),
           _buildDrawerItem(
-            icon: Icons.photo_library_outlined,
+            icon: Icons.photo_library, 
             text: 'Galeria de Fotos',
             onTap: () {
-              // TODO: Navegar para a página de Galeria
-            },
-          ),
-          _buildDrawerItem(
-            icon: Icons.person_outline,
-            text: 'Minha Conta',
-            onTap: () {
-              // TODO: Navegar para a página da conta do usuário
+              Navigator.of(context).pop(); 
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const GalleryPage()),
+              );
             },
           ),
           const Divider(),
@@ -75,7 +89,6 @@ class AppDrawer extends StatelessWidget {
             icon: Icons.logout,
             text: 'Deslogar',
             onTap: () {
-              // Navega para a tela de login e remove todas as outras telas da pilha
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const LoginPage()),
                 (Route<dynamic> route) => false,
@@ -87,15 +100,14 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // Widget auxiliar para criar os itens do menu
   ListTile _buildDrawerItem({
     required IconData icon,
     required String text,
     required GestureTapCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon),
-      title: Text(text),
+      leading: Icon(icon, color: Colors.black),
+      title: Text(text, style: const TextStyle(color: Colors.black)),
       onTap: onTap,
     );
   }
