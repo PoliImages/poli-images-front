@@ -2,16 +2,21 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../../services/image_service.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
-import 'dart:convert'; // Necessário para converter Base64
+import 'dart:convert';
 import 'dart:typed_data';
 
+// isola dart:html da compilação Desktop/Mobile
+import 'package:poli_images_front/download_helper.dart'
+    if (dart.library.html) 'package:poli_images_front/download_helper_web.dart';
 
-// Modelo para representar uma mensagem no chat
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+
 class ChatMessage {
   final String text;
   final bool isUser;
-  // Armazena a string Base64 da imagem
-  final String? base64String; 
+  final String? base64String;
 
   ChatMessage({required this.text, this.isUser = false, this.base64String});
 }
@@ -23,13 +28,12 @@ class ChatbotPage extends StatefulWidget {
   State<ChatbotPage> createState() => _ChatbotPageState();
 }
 
-// Enum para controlar o estado da conversa
-enum ChatState { 
-  waitingForPrompt, 
-  waitingForTopicDetail, 
-  waitingForStyle, 
-  generating, 
-  finished 
+enum ChatState {
+  waitingForPrompt,
+  waitingForTopicDetail,
+  waitingForStyle,
+  generating,
+  finished
 }
 
 class _ChatbotPageState extends State<ChatbotPage> {
@@ -40,7 +44,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
   ChatState _chatState = ChatState.waitingForPrompt;
   String _currentTopic = '';
 
-  // Lista principal de matérias genéricas para seleção
   final List<String> _subjectsList = const [
     'Matemática',
     'Física',
@@ -59,7 +62,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
     super.initState();
     _sendInitialMessage();
   }
-  
+
   @override
   void dispose() {
     _focusNode.dispose();
@@ -67,24 +70,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   void _sendInitialMessage() {
-    // Primeira Mensagem: Boas-vindas
     _addBotMessage(
         'Olá! Eu sou seu assistente de criação de imagens para **conteúdos escolares**.');
-    
-    // Segunda Mensagem: A Lista
+
     String listMessage = 'Para começar, escolha uma matéria da lista digitando o **número** correspondente, ou digite o seu prompt completo.\n\n';
-    
+
     for (int i = 0; i < _subjectsList.length; i++) {
       listMessage += '${i + 1} - ${_subjectsList[i]}\n';
     }
-    
+
     _addBotMessage(listMessage);
     WidgetsBinding.instance.addPostFrameCallback((_) => _focusNode.requestFocus());
   }
-
-  // --- Funções de Ajuda e Lógica de Chat ---
 
   String _normalizeText(String text) {
     String normalized = text.toLowerCase();
@@ -95,7 +94,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         .replaceAll(RegExp(r'[óòõôö]'), 'o')
         .replaceAll(RegExp(r'[úùûü]'), 'u')
         .replaceAll(RegExp(r'[ç]'), 'c');
-    
+
     return normalized.trim();
   }
 
@@ -124,22 +123,21 @@ class _ChatbotPageState extends State<ChatbotPage> {
       }
     });
   }
-  
-  // Lógica de Validação
+
   final List<String> _genericSubjectsNormalized = const [
-    'matematica', 'fisica', 'quimica', 'biologia', 'historia', 'geografia', 
+    'matematica', 'fisica', 'quimica', 'biologia', 'historia', 'geografia',
     'portugues', 'sociologia', 'filosofia', 'arte'
   ];
-  
+
   bool _isTopicDetail(String text) {
     final normalizedText = _normalizeText(text);
     if (normalizedText.length < 4) return false;
     if (!RegExp(r'\b[a-z]{4,}\b').hasMatch(normalizedText)) return false;
     int nonAlphaCount = normalizedText.replaceAll(RegExp(r'[a-z0-9\s]'), '').length;
-    
+
     return (nonAlphaCount / normalizedText.length) < 0.25;
   }
-  
+
   bool _isDetailedPrompt(String text) {
     final normalizedText = _normalizeText(text);
     bool looksLikeASentence = normalizedText.length > 15 && normalizedText.contains(' ');
@@ -154,48 +152,47 @@ class _ChatbotPageState extends State<ChatbotPage> {
         _focusNode.requestFocus();
         return;
     }
-    
+
     final submittedText = _textController.text;
     _addUserMessage(submittedText);
-    
+
     _textController.clear();
-    
+
     if (_chatState == ChatState.waitingForPrompt) {
-      
+
       final int? selectedNumber = int.tryParse(submittedText.trim());
-      
+
       if (selectedNumber != null && selectedNumber >= 1 && selectedNumber <= _subjectsList.length) {
         final selectedSubject = _subjectsList[selectedNumber - 1];
-        
+
         setState(() {
           _chatState = ChatState.waitingForTopicDetail;
           _currentTopic = selectedSubject;
         });
         _addBotMessage(
             'Você escolheu **${selectedSubject}**! Por favor, digite o assunto específico que você deseja (ex: "cinemática", "geometria plana", "O Iluminismo").');
-            
+
       } else if (_isDetailedPrompt(submittedText)) {
         setState(() {
           _chatState = ChatState.waitingForStyle;
           _currentTopic = submittedText;
         });
         _addBotMessage('Ótima ideia! Qual estilo de imagem você prefere?');
-        
+
       } else {
         _addBotMessage(
             'Entrada inválida. Por favor, digite o **número** da matéria na lista ou um prompt detalhado (ex: "Modelo atômico de Bohr").');
       }
-      
+
     } else if (_chatState == ChatState.waitingForTopicDetail) {
-      
+
       if (_isTopicDetail(submittedText)) {
         final combinedPrompt = '${_currentTopic}: $submittedText';
-        
+
         setState(() {
           _chatState = ChatState.waitingForStyle;
           _currentTopic = combinedPrompt;
         });
-        // Mensagem de transição de estado para seleção de estilo
         _addBotMessage('Perfeito! Tópico definido como **$combinedPrompt**. Agora, qual estilo de imagem você prefere?');
 
       } else {
@@ -203,52 +200,81 @@ class _ChatbotPageState extends State<ChatbotPage> {
             'Desculpe, esse termo não parece um tópico válido. Por favor, insira um assunto específico sobre **${_currentTopic}** que contenha palavras reconhecíveis, como "cinemática" ou "ondas sonoras".');
       }
     }
-    
+
     _focusNode.requestFocus();
   }
-  
+
   // --- FUNÇÃO ATUALIZADA PARA CHAMAR O BACKEND E GERAR IMAGEM ---
   Future<void> _handleStyleSelected(String style) async {
     _addUserMessage(style);
     _focusNode.unfocus();
-    
+
     final finalPromptForUser = "$_currentTopic em estilo $style";
 
     _addBotMessage('Gerando imagem para "$finalPromptForUser". Aguarde alguns segundos...');
-    
+
     setState(() {
-      _chatState = ChatState.generating; 
+      _chatState = ChatState.generating;
     });
-    
+
     try {
       // Chama o serviço que retorna a string Base64
       final base64String = await ImageService.generateImage(_currentTopic, style);
 
       setState(() {
         _messages.add(ChatMessage(
-          text: 'Sua imagem foi gerada!', // Adiciona um pequeno texto
-          // Passa a string Base64 para a mensagem
-          base64String: base64String, 
+          text: 'Sua imagem foi gerada!',
+          base64String: base64String,
         ));
         _chatState = ChatState.finished;
       });
       _scrollToBottom();
-      
+
     } catch (e) {
       _addBotMessage('❌ Erro ao gerar imagem. Verifique se o Backend está rodando corretamente (erro: $e).');
-      
+
       setState(() {
         _chatState = ChatState.waitingForStyle;
       });
     }
   }
 
-  // 💡 NOVA FUNÇÃO: Converte a string Base64 para Uint8List
+  // FUNÇÃO: Converte a string Base64 para Uint8List
   Uint8List _dataFromBase64String(String base64String) {
-    // Remove possíveis cabeçalhos de URI, se existirem (ex: data:image/png;base64,)
     String cleanString = base64String.split(',').last;
     return base64Decode(cleanString);
   }
+
+  Future<void> _downloadImageDesktop(Uint8List bytes) async {
+    try {
+      final directory = await getDownloadsDirectory(); // Pasta Downloads do usuário
+      if (directory == null) {
+        return; // Em plataformas sem suporte
+      }
+
+      final filePath =
+          '${directory.path}/imagem_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+
+      // Aviso de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Imagem salva na pasta de Downloads'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar imagem: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
 
   // --- Widgets de UI ---
 
@@ -288,7 +314,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         return _buildTextInput(hintText: 'Digite o assunto específico de ${_currentTopic}');
       case ChatState.waitingForStyle:
         return _buildStyleSelection();
-      case ChatState.generating: // Adiciona indicador de loading
+      case ChatState.generating:
         return Container(
           padding: const EdgeInsets.all(16.0),
           alignment: Alignment.center,
@@ -459,20 +485,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Exibe o texto APENAS se não for vazio
                   if (message.text.isNotEmpty)
                     RichText(text: TextSpan(children: textSpans)),
-                  
-                  // Se houver Base64String, mostra a imagem e o botão de salvar
-                  if (message.base64String != null) ...[ 
+
+                  if (message.base64String != null) ...[
                     if (message.text.isNotEmpty)
                       const SizedBox(height: 8),
 
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      // Usa Image.memory para exibir a imagem a partir dos bytes Base64
                       child: Image.memory(
-                        _dataFromBase64String(message.base64String!), 
+                        _dataFromBase64String(message.base64String!),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                             return Container(
@@ -486,12 +509,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     ),
                     const SizedBox(height: 8),
 
-                    // LÓGICA DE SALVAMENTO ATUALIZADA (direto do Base64)
+                    // LÓGICA DE SALVAMENTO (mobile + web)
                     ElevatedButton.icon(
-                      icon: const Icon(Icons.save_alt, size: 18),
-                      label: const Text('Salvar na Galeria'),
+                      icon: const Icon(Icons.download, size: 18),
+                      label: const Text('Baixar imagem'),
                       onPressed: () async {
                         final base64 = message.base64String;
+
                         if (base64 == null || base64.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -502,50 +526,50 @@ class _ChatbotPageState extends State<ChatbotPage> {
                           return;
                         }
 
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        Uint8List bytes = _dataFromBase64String(base64);
+
+                        if (kIsWeb) {
+                          // Salvar download WEB
+                          downloadImageWeb(bytes);
+                          ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Salvando imagem...'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Colors.blueGrey,
+                              content: Text('Download iniciado!'),
+                              backgroundColor: Colors.green,
                             ),
                           );
+                          return;
+                        }
 
-                        try {
-                          // CONVERTE A STRING BASE64 em bytes
-                          Uint8List bytes = _dataFromBase64String(base64);
+                        // Salvar download no desktop
+                        if (!Platform.isAndroid && !Platform.isIOS) {
+                          await _downloadImageDesktop(bytes);
+                          return;
+                        }
 
-                          // Salva os bytes da imagem
-                          final result = await ImageGallerySaverPlus.saveImage(
-                            bytes,
-                            quality: 80,
-                            name: 'GeneratedImage_${DateTime.now().millisecondsSinceEpoch}',
-                          );
+                        // Salvar download na galeria (Android/iOS)
+                        final result = await ImageGallerySaverPlus.saveImage(
+                          bytes,
+                          quality: 90,
+                          name: 'GeneratedImage_${DateTime.now().millisecondsSinceEpoch}',
+                        );
 
-                          if (result != null && result['isSuccess'] == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Imagem salva na galeria com sucesso! 🎉'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Falha ao salvar imagem. O sistema negou a permissão.'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        } catch (e) {
+                        if (result != null && result['isSuccess'] == true) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erro ao salvar imagem. Erro de conversão Base64 ou permissão: $e'),
+                            const SnackBar(
+                              content: Text('Imagem salva na galeria com sucesso! 🎉'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Falha ao salvar imagem!'),
                               backgroundColor: Colors.red,
                             ),
                           );
                         }
                       },
-                        style: ElevatedButton.styleFrom(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.teal.shade800,
                       ),
