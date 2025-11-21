@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
-// 1. Importa a página de LOGIN em vez da de cadastro
+import 'package:provider/provider.dart';
+import 'shared/services/image_repository.dart';
 import 'features/auth/presentation/pages/login_page.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; //carreca o arquivo .env
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../../../shared/services/image_repository.dart';
 
 Future<void> main() async {
-  // 2. GARANTE que o Flutter esteja pronto para carregar assets (arquivos .env)
-  WidgetsFlutterBinding.ensureInitialized(); 
-
-  // 3. CARREGA o arquivo .env (deve ser feito antes de chamar runApp)
+  WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await ImageRepository().load();
 
-  runApp(const PoliImagesApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ImageRepository(),
+      child: const PoliImagesApp(),
+    ),
+  );
 }
 
 class PoliImagesApp extends StatelessWidget {
@@ -25,7 +30,6 @@ class PoliImagesApp extends StatelessWidget {
         fontFamily: 'Roboto',
         primarySwatch: Colors.teal,
       ),
-      // 2. AQUI ESTÁ A CORREÇÃO: O app agora começa na LoginPage
       home: const LoginPage(),
     );
   }

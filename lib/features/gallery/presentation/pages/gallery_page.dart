@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_drawer.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
-import '../../../chatbot/presentation/pages/chatbot_page.dart'; 
+import '../../../chatbot/presentation/pages/chatbot_page.dart';
+import '../../../../shared/services/image_repository.dart';
+import 'package:provider/provider.dart';
+
 
 
 class GalleryPage extends StatelessWidget {
@@ -161,7 +164,8 @@ class GalleryPage extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, bool isDesktop) {
-    final double horizontalPadding = isDesktop ? 50.0 : 16.0;
+    final images = context.watch<ImageRepository>().images; // <-- pega as imagens salvas
+
     final double rightPaddingWithScrollbar = isDesktop ? 50.0 + 20.0 : 16.0;
 
     return Center(
@@ -169,10 +173,10 @@ class GalleryPage extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Padding(
           padding: EdgeInsets.only(
-            left: 0, 
-            right: rightPaddingWithScrollbar, 
+            left: 0,
+            right: rightPaddingWithScrollbar,
             top: 20,
-            bottom: 20
+            bottom: 20,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,29 +199,70 @@ class GalleryPage extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 10), 
+                      padding: const EdgeInsets.only(right: 10),
                       child: IconButton(
-                        icon: Icon(Icons.arrow_back, size: isDesktop ? 30 : 24, color: Colors.black),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          size: isDesktop ? 30 : 24,
+                          color: Colors.black,
+                        ),
                         onPressed: () {
-                          Navigator.of(context).pop(); 
+                          Navigator.of(context).pop();
                         },
                       ),
                     ),
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 30), 
-              
-              Center( 
-                child: Text(
-                  'Nenhuma imagem encontrada.',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
+
+              const SizedBox(height: 30),
+
+              // Se não tiver imagem: mensagem centralizada
+              if (images.isEmpty)
+                Center(
+                  child: Text(
+                    'Nenhuma imagem salva ainda 🖼️',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                )
+              else
+                // Se tiver imagens: grid com as imagens
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isDesktop ? 4 : 2,
+                      childAspectRatio: 1,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: images.length,
+                    itemBuilder: (context, index) {
+                      // cada imagem no repositório está como data:image/png;base64,...
+                      final uri = Uri.parse(images[index]);
+
+                      if (uri.data == null) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Center(child: Text("Imagem inválida")),
+                        );
+                      }
+
+                      final bytes = uri.data!.contentAsBytes();
+
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          bytes,
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ),
             ],
           ),
         ),
