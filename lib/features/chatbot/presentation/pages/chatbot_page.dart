@@ -221,7 +221,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     try {
       // Chama o serviço que retorna a string Base64
       final base64String = await ImageService.generateImage(_currentTopic, style);
-      print("BASE64 RECEBIDA => ${base64String.substring(0, 80)}...");
 
       setState(() {
         _messages.add(ChatMessage(

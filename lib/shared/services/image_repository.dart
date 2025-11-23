@@ -27,4 +27,21 @@ class ImageRepository extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> deleteImage(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (index >= 0 && index < _imagesBase64.length) {
+      _imagesBase64.removeAt(index);
+      await prefs.setStringList('saved_images', _imagesBase64);
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearImages() async {
+    final prefs = await SharedPreferences.getInstance();
+    _imagesBase64.clear();
+    await prefs.setStringList('saved_images', _imagesBase64);
+    notifyListeners();
+  }
 }
