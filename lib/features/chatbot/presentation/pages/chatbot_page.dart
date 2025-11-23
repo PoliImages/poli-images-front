@@ -4,6 +4,7 @@ import '../../services/image_service.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+import '../../../../shared/services/image_repository.dart';
 
 // isola dart:html da compilação Desktop/Mobile
 import 'package:poli_images_front/download_helper.dart'
@@ -228,6 +229,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
         ));
         _chatState = ChatState.finished;
       });
+      await ImageRepository().addImage(base64String);
+
       _scrollToBottom();
 
     } catch (e) {
