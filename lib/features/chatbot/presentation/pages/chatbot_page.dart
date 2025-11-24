@@ -5,11 +5,8 @@ import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import '../../../../shared/services/image_repository.dart';
-
-// isola dart:html da compilação Desktop/Mobile
 import 'package:poli_images_front/download_helper.dart'
     if (dart.library.html) 'package:poli_images_front/download_helper_web.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -147,7 +144,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     return looksLikeASentence && isNotJustASubject;
   }
 
-  // --- FUNÇÃO PRINCIPAL ---
   void _handleSubmitted(String text) {
     if (text.isEmpty) {
         _focusNode.requestFocus();
@@ -205,7 +201,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     _focusNode.requestFocus();
   }
 
-  // --- FUNÇÃO ATUALIZADA PARA CHAMAR O BACKEND E GERAR IMAGEM ---
   Future<void> _handleStyleSelected(String style) async {
     _addUserMessage(style);
     _focusNode.unfocus();
@@ -219,7 +214,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     });
 
     try {
-      // Chama o serviço que retorna a string Base64
       final base64String = await ImageService.generateImage(_currentTopic, style);
 
       setState(() {
@@ -234,7 +228,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       _scrollToBottom();
 
     } catch (e) {
-      _addBotMessage('❌ Erro ao gerar imagem. Verifique se o Backend está rodando corretamente (erro: $e).');
+      _addBotMessage('Erro ao gerar imagem. Verifique se o Backend está rodando corretamente (erro: $e).');
 
       setState(() {
         _chatState = ChatState.waitingForStyle;
@@ -242,7 +236,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
-  // FUNÇÃO: Converte a string Base64 para Uint8List
   Uint8List _dataFromBase64String(String base64String) {
     String cleanString = base64String.split(',').last;
     return base64Decode(cleanString);
@@ -250,9 +243,9 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   Future<void> _downloadImageDesktop(Uint8List bytes) async {
     try {
-      final directory = await getDownloadsDirectory(); // Pasta Downloads do usuário
+      final directory = await getDownloadsDirectory();
       if (directory == null) {
-        return; // Em plataformas sem suporte
+        return;
       }
 
       final filePath =
@@ -261,7 +254,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
       final file = File(filePath);
       await file.writeAsBytes(bytes);
 
-      // Aviso de sucesso
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Imagem salva na pasta de Downloads'),
@@ -278,8 +270,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
-
-  // --- Widgets de UI ---
 
   @override
   Widget build(BuildContext context) {
@@ -512,7 +502,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     ),
                     const SizedBox(height: 8),
 
-                    // LÓGICA DE SALVAMENTO (mobile + web)
                     ElevatedButton.icon(
                       icon: const Icon(Icons.download, size: 18),
                       label: const Text('Baixar imagem'),
@@ -532,7 +521,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
                         Uint8List bytes = _dataFromBase64String(base64);
 
                         if (kIsWeb) {
-                          // Salvar download WEB
                           downloadImageWeb(bytes);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -543,13 +531,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
                           return;
                         }
 
-                        // Salvar download no desktop
                         if (!Platform.isAndroid && !Platform.isIOS) {
                           await _downloadImageDesktop(bytes);
                           return;
                         }
 
-                        // Salvar download na galeria (Android/iOS)
                         final result = await ImageGallerySaverPlus.saveImage(
                           bytes,
                           quality: 90,
