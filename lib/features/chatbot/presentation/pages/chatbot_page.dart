@@ -270,7 +270,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
