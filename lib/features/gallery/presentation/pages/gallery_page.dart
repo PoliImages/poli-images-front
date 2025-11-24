@@ -7,6 +7,13 @@ import '../../../auth/presentation/pages/login_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../chatbot/presentation/pages/chatbot_page.dart';
 import '../../../../shared/services/image_repository.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:poli_images_front/download_helper.dart'
+    if (dart.library.html) 'package:poli_images_front/download_helper_web.dart';
+
 
 
 class GalleryPage extends StatelessWidget {
@@ -35,6 +42,33 @@ class GalleryPage extends StatelessWidget {
   Uint8List _decodeBase64(String dataUri) {
     final base64String = dataUri.split(',').last;
     return Uint8List.fromList(base64Decode(base64String));
+  }
+
+  Future<void> _downloadImageDesktop(BuildContext context, Uint8List bytes) async {
+    try {
+      final directory = await getDownloadsDirectory();
+      if (directory == null) return;
+
+      final filePath =
+          '${directory.path}/imagem_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      final file = File(filePath);
+      await file.writeAsBytes(bytes);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Imagem salva na pasta Downloads!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar imagem: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -317,6 +351,66 @@ class GalleryPage extends StatelessWidget {
                               ),
                               child: const Icon(
                                 Icons.delete,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: InkWell(
+                            onTap: () async {
+                              final base64Image = images[index];
+                              final bytes = _decodeBase64(base64Image);
+
+                              if (kIsWeb) {
+                                downloadImageWeb(bytes);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Download iniciado!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              if (!Platform.isAndroid && !Platform.isIOS) {
+                                await _downloadImageDesktop(context, bytes);
+                                return;
+                              }
+
+                              final result = await ImageGallerySaverPlus.saveImage(
+                                bytes,
+                                quality: 90,
+                                name: 'GalleryImage_${DateTime.now().millisecondsSinceEpoch}',
+                              );
+
+                              if (result['isSuccess'] == true) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Imagem salva na galeria!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Falha ao salvar imagem!'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.download,
                                 color: Colors.white,
                                 size: 20,
                               ),
